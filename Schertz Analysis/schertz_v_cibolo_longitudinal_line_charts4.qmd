@@ -1,0 +1,589 @@
+---
+title: "Enhanced Census Longitudinal Analysis with Shiny Integration"
+subtitle: "Cibolo vs Schertz Analysis with Optional Data Standardization"
+description: "Flexible longitudinal analysis with optional Shiny app data formatting"
+author: "Census Analysis Tool"
+date: today
+format:
+  html:
+    code-copy: true
+    page-layout: full
+    fig-width: 12
+    fig-height: 10
+    fig-dpi: 300
+    df-print: paged
+    code-overflow: wrap
+    toc: true
+    toc-depth: 3
+execute:
+  echo: true
+  message: false
+  warning: false
+  eval: true
+  fig-width: 12
+  fig-height: 10
+---
+
+```{r setup}
+#| label: setup
+#| include: false
+
+knitr::opts_chunk$set(echo = TRUE)
+options(scipen = 999)
+set.seed(123)
+```
+
+> **Note:** Run chunks sequentially the first time. After initial run, 
+> you can modify parameters and re-run specific sections as needed.
+
+## Enhanced Longitudinal Census Analysis
+
+This analysis provides flexible longitudinal data collection and visualization for US Census data, with optional standardization for Shiny dashboard integration.
+
+### Key Features:
+- **14 years maximum data range** (2009-2022)
+- **User-defined analysis years** at the top
+- **Optional Shiny standardization** with toggle parameter
+- **Professional line charts** with trend analysis
+- **Multiple export formats** (.csv, .xlsx, .Rds)
+
+---
+
+```{r libraries}
+# Load required libraries
+library(tidycensus)
+library(tidyverse)
+library(writexl)
+library(scales)
+library(ggplot2)
+```
+
+## Step 1: Set Analysis Parameters
+
+```{r parameters}
+# SET YOUR YEARS HERE - Customize based on how far back you want to go
+ANALYSIS_YEARS <- 2009:2022  # Maximum ACS 5-year range (14 years!)
+# Alternative options:
+# ANALYSIS_YEARS <- 2015:2022  # Recent 8 years (faster processing)
+# ANALYSIS_YEARS <- c(2009, 2012, 2015, 2018, 2022)  # Every 3 years
+# ANALYSIS_YEARS <- 2010:2022  # Post-recession era
+# ANALYSIS_YEARS <- 2013:2019  # Pre-pandemic era
+
+# Set your cities
+CITIES <- c("Cibolo city, Texas", "Schertz city, Texas")
+
+# Choose your survey type
+SURVEY_TYPE <- "acs5"  # Use "acs1" if cities were >65k (they're not)
+
+# SHINY APP INTEGRATION TOGGLE
+STANDARDIZE_FOR_SHINY <- TRUE  # Set to TRUE to create Shiny-ready datasets
+
+cat("=== ENHANCED LONGITUDINAL CENSUS ANALYSIS ===\n")
+cat("ACS 5-Year Estimates: 2009-2022 (14 years maximum)\n")
+cat("SELECTED ANALYSIS YEARS:", paste(ANALYSIS_YEARS, collapse = ", "), "\n")
+cat("TOTAL YEARS OF DATA:", length(ANALYSIS_YEARS), "\n")
+cat("ANALYSIS SPAN:", max(ANALYSIS_YEARS) - min(ANALYSIS_YEARS) + 1, "years\n")
+cat("SHINY STANDARDIZATION:", ifelse(STANDARDIZE_FOR_SHINY, "ENABLED", "DISABLED"), "\n\n")
+```
+
+## Step 2: Define Variables
+
+```{r variables}
+# Variables optimized for meaningful trend visualization
+longitudinal_vars <- c(
+  # Population and Demographics
+  total_pop = "DP05_0001",
+  median_age = "DP05_0018",
+  under_18_pct = "DP05_0019P",
+  over_65_pct = "DP05_0024P",
+  hispanic_pct = "DP05_0071P",
+  
+  # Education and Social
+  bachelor_plus_pct = "DP02_0065P",
+  married_couple_families_pct = "DP02_0007P",
+  avg_household_size = "DP02_0016",
+  
+  # Economic Indicators
+  median_hh_income = "DP03_0062",
+  per_capita_income = "DP03_0088", 
+  unemployment_rate = "DP03_0005P",
+  poverty_rate = "DP03_0119P",
+  
+  # Housing Market
+  median_home_value = "DP04_0089",
+  median_gross_rent = "DP04_0134",
+  owner_occupied_pct = "DP04_0046P",
+  vacancy_rate = "DP04_0003P"
+)
+```
+
+## Step 3: Define Functions
+
+```{r functions}
+# Function to check data availability
+check_chart_data_availability <- function(years, cities, variables) {
+  cat("=== CHECKING DATA AVAILABILITY ===\n")
+  cat("Testing years:", paste(range(years), collapse = " to "), "\n")
+  cat("Cities:", paste(cities, collapse = ", "), "\n\n")
+  
+  test_years <- unique(c(min(years), median(years), max(years)))
+  
+  for(yr in test_years) {
+    cat("Testing year", yr, "... ")
+    
+    tryCatch({
+      test_data <- get_acs(
+        geography = "place",
+        variables = variables[1:3],
+        state = "TX",
+        year = yr,
+        survey = SURVEY_TYPE
+      ) %>%
+        filter(NAME %in% cities)
+      
+      if(nrow(test_data) > 0) {
+        cat("✓ Available (", nrow(test_data), "records)\n")
+      } else {
+        cat("✗ No data for these cities\n")
+      }
+    }, error = function(e) {
+      cat("✗ Error:", e$message, "\n")
+    })
+  }
+  cat("\n")
+}
+
+# Enhanced longitudinal data function
+get_longitudinal_data <- function(years = ANALYSIS_YEARS,
+                                 cities = CITIES, 
+                                 variables = longitudinal_vars,
+                                 survey = SURVEY_TYPE) {
+  
+  cat("=== STARTING LONGITUDINAL DATA COLLECTION ===\n")
+  cat("Years:", paste(years, collapse = ", "), "\n")
+  cat("Variables:", length(variables), "\n")
+  cat("Survey:", survey, "\n\n")
+  
+  longitudinal_data <- map_dfr(years, function(yr) {
+    cat("Fetching data for year:", yr, "...")
+    
+    tryCatch({
+      yearly_data <- get_acs(
+        geography = "place",
+        variables = variables,
+        state = "TX",
+        year = yr,
+        survey = survey
+      ) %>%
+        filter(NAME %in% cities) %>%
+        mutate(
+          year = yr,
+          city = case_when(
+            str_detect(NAME, "Cibolo") ~ "Cibolo",
+            str_detect(NAME, "Schertz") ~ "Schertz",
+            TRUE ~ NAME
+          ),
+          period = if(survey == "acs5") paste0(yr-4, "-", yr) else as.character(yr)
+        ) %>%
+        select(city, year, period, variable, estimate, moe)
+      
+      cat(" ✓ Success (", nrow(yearly_data), " records)\n")
+      return(yearly_data)
+      
+    }, error = function(e) {
+      cat(" ✗ Error:", e$message, "\n")
+      return(tibble())
+    })
+  })
+  
+  if(nrow(longitudinal_data) == 0) {
+    stop("No data retrieved. Check your years, cities, and variables.")
+  }
+  
+  # Add variable labels and categories
+  longitudinal_data <- longitudinal_data %>%
+    mutate(
+      variable_label = case_when(
+        variable == "total_pop" ~ "Total Population",
+        variable == "median_age" ~ "Median Age",
+        variable == "under_18_pct" ~ "Percent Under 18",
+        variable == "over_65_pct" ~ "Percent Over 65", 
+        variable == "hispanic_pct" ~ "Percent Hispanic/Latino",
+        variable == "bachelor_plus_pct" ~ "Percent Bachelor's Degree+",
+        variable == "married_couple_families_pct" ~ "Percent Married Couple Families",
+        variable == "avg_household_size" ~ "Average Household Size",
+        variable == "median_hh_income" ~ "Median Household Income",
+        variable == "per_capita_income" ~ "Per Capita Income",
+        variable == "unemployment_rate" ~ "Unemployment Rate (%)",
+        variable == "poverty_rate" ~ "Poverty Rate (%)",
+        variable == "median_home_value" ~ "Median Home Value",
+        variable == "median_gross_rent" ~ "Median Gross Rent", 
+        variable == "owner_occupied_pct" ~ "Percent Owner Occupied",
+        variable == "vacancy_rate" ~ "Vacancy Rate (%)",
+        TRUE ~ variable
+      ),
+      category = case_when(
+        variable %in% c("total_pop", "median_age", "under_18_pct", "over_65_pct", "hispanic_pct") ~ "Demographics",
+        variable %in% c("bachelor_plus_pct", "married_couple_families_pct", "avg_household_size") ~ "Social Characteristics",
+        variable %in% c("median_hh_income", "per_capita_income", "unemployment_rate", "poverty_rate") ~ "Economic",
+        variable %in% c("median_home_value", "median_gross_rent", "owner_occupied_pct", "vacancy_rate") ~ "Housing",
+        TRUE ~ "Other"
+      )
+    )
+  
+  cat("\nData collection complete!\n")
+  cat("Total records:", nrow(longitudinal_data), "\n")
+  cat("Years with data:", paste(sort(unique(longitudinal_data$year)), collapse = ", "), "\n")
+  cat("Variables collected:", length(unique(longitudinal_data$variable)), "\n\n")
+  
+  return(longitudinal_data)
+}
+
+# Function to standardize data for Shiny app
+standardize_for_shiny_app <- function(data) {
+  cat("=== STANDARDIZING DATA FOR SHINY APP ===\n")
+  
+  shiny_data <- data %>%
+    rename(
+      date = year,        # year becomes date (x-axis for Shiny)
+      value = estimate    # estimate becomes value (y-axis for Shiny)
+    ) %>%
+    select(date, value, city, period, category, variable_label, moe, variable) %>%
+    arrange(date, city, category, variable_label)
+  
+  cat("Shiny standardization complete!\n")
+  cat("Structure: date, value, + ", ncol(shiny_data) - 2, " categorical columns\n")
+  cat("Total records:", nrow(shiny_data), "\n\n")
+  
+  return(shiny_data)
+}
+
+# Function to save standardized data - FIXED VERSION
+save_shiny_data <- function(shiny_data, base_filename) {
+  year_range <- paste0(min(ANALYSIS_YEARS), "_", max(ANALYSIS_YEARS))
+  
+  csv_filename <- paste0(base_filename, "_shiny_", year_range, ".csv")
+  rds_filename <- paste0(base_filename, "_shiny_", year_range, ".rds")
+  
+  # ACTUALLY SAVE THE FILES (was commented out before!)
+  write_csv(shiny_data, csv_filename)
+  cat("✓ Shiny data saved as CSV:", csv_filename, "\n")
+  
+  saveRDS(shiny_data, rds_filename)
+  cat("✓ Shiny data saved as RDS:", rds_filename, "\n")
+  
+  cat("\n=== SHINY APP INTEGRATION SUMMARY ===\n")
+  cat("Dataset structure for Shiny:\n")
+  cat("- First column 'date':", class(shiny_data$date), "(time axis)\n")
+  cat("- Second column 'value':", class(shiny_data$value), "(measurement axis)\n")
+  cat("- Categorical columns:", paste(names(shiny_data)[3:ncol(shiny_data)], collapse = ", "), "\n")
+  cat("- Total combinations:", length(unique(paste(shiny_data$city, shiny_data$variable_label))), "\n")
+  cat("- Years covered:", paste(sort(unique(shiny_data$date)), collapse = ", "), "\n\n")
+  
+  return(list(csv = csv_filename, rds = rds_filename))
+}
+
+# Enhanced line chart function
+create_line_chart <- function(data, var_name, title_suffix = "", years_in_title = TRUE) {
+  chart_data <- data %>%
+    filter(variable_label == var_name)
+  
+  if(nrow(chart_data) == 0) {
+    cat("Variable '", var_name, "' not found.\n")
+    return(NULL)
+  }
+  
+  is_dollar <- str_detect(var_name, "Income|Value|Rent")
+  is_percent <- str_detect(var_name, "Percent|Rate|%")
+  
+  year_range <- if(years_in_title) {
+    paste0(" (", min(chart_data$year), "-", max(chart_data$year), ")")
+  } else {
+    ""
+  }
+  
+  p <- ggplot(chart_data, aes(x = year, y = estimate, color = city, group = city)) +
+    geom_line(size = 1.2) +
+    geom_point(size = 3) +
+    labs(
+      title = paste0(var_name, " Comparison: Cibolo vs Schertz", year_range, title_suffix),
+      subtitle = paste0("ACS 5-Year Estimates, ", length(unique(chart_data$year)), " years of data"),
+      x = "Year",
+      y = var_name,
+      color = "City",
+      caption = "Source: US Census Bureau, American Community Survey"
+    ) +
+    theme_minimal() +
+    theme(
+      plot.title = element_text(size = 14, face = "bold"),
+      plot.subtitle = element_text(size = 12),
+      legend.position = "bottom",
+      panel.grid.minor = element_blank(),
+      axis.text.x = element_text(angle = 45, hjust = 1)
+    ) +
+    scale_color_manual(values = c("Cibolo" = "#1f77b4", "Schertz" = "#ff7f0e")) +
+    scale_x_continuous(breaks = unique(chart_data$year))
+  
+  if(is_dollar) {
+    p <- p + scale_y_continuous(labels = dollar_format())
+  } else if(is_percent) {
+    p <- p + scale_y_continuous(labels = function(x) paste0(x, "%"))
+  } else if(max(chart_data$estimate, na.rm = TRUE) > 1000) {
+    p <- p + scale_y_continuous(labels = comma_format())
+  }
+  
+  return(p)
+}
+```
+
+## Step 4: Run Data Collection
+
+```{r data-collection}
+# Check data availability
+check_chart_data_availability(ANALYSIS_YEARS, CITIES, longitudinal_vars)
+
+# Get the longitudinal data
+longitudinal_data <- get_longitudinal_data()
+
+# Create separate datasets for each city
+cibolo_data <- longitudinal_data %>%
+  filter(city == "Cibolo") %>%
+  arrange(variable, year)
+
+schertz_data <- longitudinal_data %>%
+  filter(city == "Schertz") %>%
+  arrange(variable, year)
+
+# Create wide format for Excel analysis
+longitudinal_wide <- longitudinal_data %>%
+  select(city, year, variable_label, estimate) %>%
+  pivot_wider(
+    names_from = city,
+    values_from = estimate,
+    names_prefix = ""
+  ) %>%
+  group_by(variable_label) %>%
+  mutate(
+    difference = Schertz - Cibolo,
+    schertz_growth_rate = round((Schertz / lag(Schertz, order_by = year) - 1) * 100, 1),
+    cibolo_growth_rate = round((Cibolo / lag(Cibolo, order_by = year) - 1) * 100, 1)
+  ) %>%
+  ungroup() %>%
+  arrange(variable_label, year)
+```
+
+## Step 5: Create Charts
+
+```{r charts}
+# Key indicators for automatic chart generation
+key_indicators <- c(
+  "Total Population",
+  "Median Household Income", 
+  "Per Capita Income",
+  "Median Home Value",
+  "Percent Bachelor's Degree+",
+  "Unemployment Rate (%)"
+)
+
+# Create and display key charts
+cat("=== CREATING KEY CHARTS ===\n")
+for(indicator in key_indicators) {
+  cat("Creating chart for:", indicator, "\n")
+  chart <- create_line_chart(longitudinal_data, indicator)
+  
+  if(!is.null(chart)) {
+    print(chart)
+    
+    # Save chart
+    year_range <- paste0(min(ANALYSIS_YEARS), "_", max(ANALYSIS_YEARS))
+    filename <- paste0(str_replace_all(str_to_lower(indicator), "[^a-z0-9]", "_"), 
+                      "_", year_range, ".png")
+    ggsave(filename, chart, width = 12, height = 8, dpi = 300)
+    cat("  → Saved as:", filename, "\n")
+  }
+  cat("\n")
+}
+
+# Special Per Capita Income Analysis
+cat("=== DETAILED PER CAPITA INCOME ANALYSIS ===\n")
+per_capita_chart <- create_line_chart(longitudinal_data, "Per Capita Income")
+
+if(!is.null(per_capita_chart)) {
+  print(per_capita_chart)
+  
+  year_range <- paste0(min(ANALYSIS_YEARS), "_", max(ANALYSIS_YEARS))
+  ggsave(paste0("per_capita_income_detailed_", year_range, ".png"), 
+         per_capita_chart, width = 12, height = 8, dpi = 300)
+  cat("Detailed Per Capita Income chart saved.\n\n")
+}
+```
+
+## Step 6: Export All Files
+
+```{r export-files}
+# Create year range for filenames
+year_range <- paste0(min(ANALYSIS_YEARS), "_", max(ANALYSIS_YEARS))
+
+# Prepare data for export
+chart_ready_data <- longitudinal_data %>%
+  select(city, year, period, category, variable_label, estimate, moe) %>%
+  arrange(category, variable_label, city, year)
+
+# 1. Standard analysis files (always created)
+cat("=== EXPORTING ANALYSIS FILES ===\n")
+write_xlsx(
+  list(
+    "Chart_Ready_Data" = chart_ready_data,
+    "Wide_Format" = longitudinal_wide,
+    "Cibolo_Only" = cibolo_data,
+    "Schertz_Only" = schertz_data,
+    "Variable_List" = tibble(
+      variable_code = names(longitudinal_vars),
+      variable_label = unname(longitudinal_vars),
+      description = "ACS 5-Year Estimates"
+    )
+  ),
+  path = paste0("cibolo_schertz_analysis_", year_range, ".xlsx")
+)
+cat("✓ Analysis Excel file saved: cibolo_schertz_analysis_", year_range, ".xlsx\n")
+
+# CSV exports for analysis data
+write_csv(longitudinal_data, paste0("longitudinal_analysis_data_", year_range, ".csv"))
+cat("✓ Analysis CSV file saved: longitudinal_analysis_data_", year_range, ".csv\n")
+
+# 2. Shiny-standardized files (conditional)
+if(STANDARDIZE_FOR_SHINY) {
+  cat("\n=== CREATING SHINY-STANDARDIZED FILES ===\n")
+  
+  # Create the standardized data: date, value, + categories
+  shiny_standardized_data <- standardize_for_shiny_app(longitudinal_data)
+  
+  # Save in both formats
+  shiny_files <- save_shiny_data(shiny_standardized_data, "cibolo_schertz_census")
+  
+  cat("\n=== SHINY APP USAGE INSTRUCTIONS ===\n")
+  cat("1. Upload either the .csv or .rds file to your Shiny app\n")
+  cat("2. Data structure: 'date' (time), 'value' (measurement), + categories\n")
+  cat("3. Filter by 'variable_label' to select indicators\n")
+  cat("4. Group by 'city' to compare Cibolo vs Schertz\n")
+  cat("5. Use 'category' to group related indicators\n\n")
+} else {
+  cat("\n=== SHINY STANDARDIZATION SKIPPED ===\n")
+  cat("Set STANDARDIZE_FOR_SHINY = TRUE to create Shiny-ready datasets\n\n")
+}
+
+cat("=== ALL FILE EXPORTS COMPLETE ===\n")
+```
+
+## Summary and Analysis
+
+```{r summary}
+cat("=== ENHANCED CENSUS ANALYSIS SUMMARY ===\n")
+cat("Analysis period:", min(ANALYSIS_YEARS), "to", max(ANALYSIS_YEARS), "\n")
+cat("Total years analyzed:", length(unique(longitudinal_data$year)), "\n")
+cat("Variables tracked:", length(longitudinal_vars), "\n")
+cat("Charts created:", length(key_indicators) + 1, "\n")
+
+if(STANDARDIZE_FOR_SHINY && exists("shiny_files")) {
+  cat("Shiny files saved:", shiny_files$csv, "and", shiny_files$rds, "\n")
+}
+
+# Show available variables for plotting
+cat("\n=== AVAILABLE VARIABLES FOR LINE CHARTS ===\n")
+available_vars <- longitudinal_data %>%
+  distinct(category, variable_label) %>%
+  arrange(category, variable_label)
+
+for(cat_name in unique(available_vars$category)) {
+  cat("\n", cat_name, ":\n")
+  vars_in_cat <- available_vars %>% filter(category == cat_name) %>% pull(variable_label)
+  cat(paste("-", vars_in_cat), sep = "\n")
+}
+
+# Growth summary for all key variables
+growth_summary <- longitudinal_data %>%
+  filter(variable_label %in% key_indicators) %>%
+  group_by(city, variable_label) %>%
+  summarise(
+    start_value = first(estimate, order_by = year),
+    end_value = last(estimate, order_by = year),
+    total_growth_pct = round(((end_value / start_value) - 1) * 100, 1),
+    annual_growth_rate = round((((end_value / start_value)^(1/(max(year) - min(year)))) - 1) * 100, 2),
+    .groups = "drop"
+  ) %>%
+  arrange(variable_label, city)
+
+cat("\n=== GROWTH SUMMARY FOR KEY INDICATORS ===\n")
+print(growth_summary)
+
+DT::datatable(
+  growth_summary,
+  options = list(
+    pageLength = 15,
+    scrollX = TRUE,
+    columnDefs = list(
+      list(className = 'dt-center', targets = "_all")
+    )
+  ),
+  caption = "Growth Summary for Key Indicators",
+  rownames = FALSE
+) %>%
+  DT::formatPercentage(c("total_growth_pct", "annual_growth_rate"), digits = 1) %>%
+  DT::formatCurrency(c("start_value", "end_value"), currency = "$", digits = 0)
+
+
+```
+
+## User Functions
+
+```{r user-functions}
+# Enhanced user function for creating charts
+plot_comparison <- function(variable_name, save_plot = FALSE, width = 12, height = 8) {
+  chart <- create_line_chart(longitudinal_data, variable_name)
+  
+  if(!is.null(chart)) {
+    print(chart)
+    
+    if(save_plot) {
+      year_range <- paste0(min(ANALYSIS_YEARS), "_", max(ANALYSIS_YEARS))
+      filename <- paste0(str_replace_all(str_to_lower(variable_name), "[^a-z0-9]", "_"), 
+                        "_", year_range, ".png")
+      ggsave(filename, chart, width = width, height = height, dpi = 300)
+      cat("Chart saved as:", filename, "\n")
+    }
+  }
+  
+  return(chart)
+}
+
+cat("\n=== USAGE EXAMPLES ===\n")
+cat("Create any line chart:\n")
+cat("plot_comparison('Total Population')\n")
+cat("plot_comparison('Median Home Value', save_plot = TRUE)\n")
+```
+
+## Analysis Summary
+
+This enhanced analysis provides:
+
+### **Data Collection:**
+- **Maximum 14 years** of longitudinal data (2009-2022)
+- **Comprehensive variables** across demographics, economics, education, and housing
+- **Data availability checking** before processing
+
+### **Visualization:**
+- **Professional line charts** with automatic formatting
+- **Chart dashboard** creation and export
+- **Trend analysis** with growth rates and comparative statistics
+
+### **Shiny Integration:**
+- **Optional standardization** with `STANDARDIZE_FOR_SHINY` toggle
+- **Standardized format:** `date`, `value`, + categorical columns
+- **Dual file output:** Both .csv (universal) and .rds (R-optimized)
+- **Single combined file** with all variables and cities
+
+### **Flexibility:**
+- **User-defined years** at the top of the script
+- **Multiple export formats** for different use cases
+
+The standardized datasets are ready for immediate upload to your Shiny dashboard, with `date` and `value` as the first two columns as required, while preserving all categorical information for filtering and grouping in your app's line chart functionality.

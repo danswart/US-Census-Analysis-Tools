@@ -1,0 +1,307 @@
+---
+title: "Longitudinal Analysis Workflow: Cibolo, TX and Schertz, TX"
+subtitle: "Using US Census Bureau Built-in Applications"
+author: "Research Workflow"
+date: today
+format: html
+toc: true
+---
+
+## Overview
+
+This workflow provides a systematic approach to analyzing longitudinal data for Cibolo, TX (78108) and Schertz, TX (78154) using US Census Bureau's built-in applications. Both cities are located in Guadalupe County, Texas, with populations under 60,000.
+
+**Key Information:**
+- Cibolo, TX: ZIP 78108, Guadalupe County
+- Schertz, TX: ZIP 78154, Guadalupe County  
+- Both cities are part of the San Antonio metropolitan area
+
+## NOTE
+
+Using tidycensus eliminates most of the manual downloading suggested in the workflow. Here's what changes:
+
+What tidycensus Replaces:
+✅ No need to manually download from data.census.gov:
+
+
+All ACS data (DP02, DP03, DP04, DP05 tables)
+Decennial Census data
+Population estimates
+Most demographic/economic/housing variables
+
+
+✅ No CSV/Excel file management:
+
+Data comes directly into R as clean data frames
+No need to wrangle multiple downloaded files
+Automatic variable labeling and geographic coding
+
+
+What You Still Might Need Manual Downloads For:
+❌ LEHD Applications (tidycensus doesn't cover these):
+
+
+OnTheMap - Commuting patterns, workplace analysis
+QWI Explorer - Quarterly workforce indicators
+J2J Explorer - Job-to-job flows
+These require using the web applications directly
+
+
+❌ NHGIS Historical Data:
+
+Time series with standardized boundaries (1790-present)
+Historical tract boundary normalization
+tidycensus goes back to ~2009 for ACS, 1990 for Decennial
+
+
+❌ Specialized Surveys:
+
+Business Dynamics Statistics
+Some experimental datasets
+
+
+Revised Workflow with tidycensus:
+Phase 1-2: Demographics & Current Analysis → 100% tidycensus ✅
+Phase 3: Workforce Analysis → Mostly manual web apps ❌
+Phase 4: Historical Context → Mixed (tidycensus + NHGIS) ⚠️
+
+
+Bottom Line:
+For your Cibolo/Schertz analysis, tidycensus handles about 70-80% of the data collection automatically. You only need manual downloads if you want:
+
+Detailed commuting/workforce flows (OnTheMap)
+
+Pre-1990 historical comparisons (NHGIS)
+
+Business establishment data
+
+
+The demographic, economic, housing, and recent population trends can all be pulled directly into R - no manual downloading required!
+
+
+
+## Phase 1: Current Demographics and Housing (data.census.gov)
+
+### Step 1.1: Basic Demographics
+**Tool:** [data.census.gov](https://data.census.gov/)
+
+1. Navigate to data.census.gov
+2. Search for "Cibolo city, Texas"
+3. Access Community Data Profile for most recent ACS 5-year estimates
+4. Download key tables:
+   - **DP02**: Selected Social Characteristics
+   - **DP03**: Selected Economic Characteristics  
+   - **DP04**: Selected Housing Characteristics
+   - **DP05**: ACS Demographic and Housing Estimates
+
+5. Repeat process for "Schertz city, Texas"
+6. Create comparison spreadsheet with both cities' current data
+
+### Step 1.2: Historical ACS Comparisons
+1. Use "Compare" feature in data.census.gov
+2. Select multiple ACS 5-year periods (2013-2017, 2016-2020, 2018-2022)
+3. Focus on:
+   - Population growth trends
+   - Median household income changes
+   - Educational attainment evolution
+   - Housing value appreciation
+
+**Expected Output:** Current demographic snapshot and 5-10 year trends for both cities
+
+## Phase 2: Workforce and Employment Analysis (LEHD Applications)
+
+### Step 2.1: Employment Patterns (QWI Explorer)
+**Tool:** [QWI Explorer](https://qwiexplorer.ces.census.gov/)
+
+1. Access QWI Explorer
+2. **Geography Settings:**
+   - Select Texas → Guadalupe County
+   - Note: City-level data may not be available; use county as proxy
+3. **Time Series Analysis:**
+   - Select quarterly data from 2010-present
+   - Key indicators to track:
+     - Total Employment (Emp)
+     - Job Creation (JC) 
+     - Job Destruction (JD)
+     - Hires (H)
+     - Separations (S)
+     - Average Monthly Earnings (EarnS)
+
+4. **Demographic Breakdowns:**
+   - Age groups: Focus on 25-54 (prime working age)
+   - Education levels: Less than high school through Bachelor's+
+   - Industry sectors relevant to the area
+
+5. Export data as CSV for further analysis
+
+### Step 2.2: Commuting Patterns (OnTheMap)
+**Tool:** [OnTheMap](https://onthemap.ces.census.gov/)
+
+**For Cibolo Analysis:**
+1. Select "Residence Area" analysis
+2. Draw boundary around Cibolo city limits or use ZIP 78108
+3. Generate reports for:
+   - Where Cibolo residents work (destination analysis)
+   - Industry breakdown of jobs
+   - Earnings distribution
+   - Age demographics of workforce
+
+4. Select "Work Area" analysis  
+5. Draw same boundary to analyze:
+   - Where workers in Cibolo live (inflow analysis)
+   - Compare residential vs. employment patterns
+
+**Repeat for Schertz (ZIP 78154)**
+
+6. **Comparative Analysis:**
+   - Compare commuting distances between cities
+   - Identify economic specializations
+   - Analyze dependency on San Antonio metro employment
+
+### Step 2.3: Job Flow Analysis (J2J Explorer)  
+**Tool:** [J2J Explorer](https://j2jexplorer.ces.census.gov/)
+
+1. **County-Level Analysis** (Guadalupe County):
+   - Track job-to-job flows over time
+   - Focus on:
+     - Job-to-job flow rates
+     - Industry switching patterns
+     - Earnings changes with job changes
+     - Flow destinations (which counties/metros)
+
+2. **Time Periods to Analyze:**
+   - Pre-recession (2008-2010)
+   - Recovery period (2011-2015)  
+   - Recent growth (2016-present)
+
+3. **Key Metrics:**
+   - Job-to-job flow rates by industry
+   - Persistent joblessness rates
+   - New hire earnings vs. job-to-job earnings
+
+## Phase 3: Historical Context and Long-term Trends (NHGIS)
+
+### Step 3.1: Historical Demographics
+**Tool:** [NHGIS](https://www.nhgis.org/)
+
+1. **Account Setup:** Create free NHGIS account
+2. **Data Selection:**
+   - Geographic Level: Census tracts and places
+   - Years: 1990, 2000, 2010, 2020 decennial censuses
+   - Variables: Population, housing units, basic demographics
+
+3. **Search Process:**
+   - Use data finder to locate Cibolo and Schertz
+   - Download time series tables for population growth
+   - Get corresponding boundary files for mapping
+
+4. **Analysis Focus:**
+   - Population growth trajectories since 1990
+   - Housing development patterns
+   - Demographic composition changes
+   - Urban development timeline
+
+### Step 3.2: Tract-Level Longitudinal Analysis
+**Tool:** Longitudinal Tract Database (if available) or NHGIS standardized boundaries
+
+1. Identify census tracts containing Cibolo and Schertz
+2. Track changes in tract boundaries over time
+3. Normalize data to consistent geographic units
+4. Analyze neighborhood-level changes:
+   - Income distribution evolution
+   - Educational attainment improvements
+   - Housing tenure patterns
+
+## Phase 4: Economic and Business Development
+
+### Step 4.1: Business Dynamics 
+**Tool:** County Business Patterns via data.census.gov
+
+1. Search for Guadalupe County business patterns
+2. Track establishment counts by industry over time
+3. Analyze employment size distributions
+4. Identify growing vs. declining sectors
+
+### Step 4.2: Housing Market Analysis
+**Tool:** American Housing Survey Table Creator (if available for metro area)
+
+1. Access San Antonio metro area housing data
+2. Focus on:
+   - New construction trends
+   - Home value appreciation
+   - Rental market development
+   - Housing affordability measures
+
+## Phase 5: Comparative Metropolitan Analysis
+
+### Step 5.1: Regional Context
+1. **Metropolitan Comparison:**
+   - Compare Guadalupe County trends to:
+     - Bexar County (San Antonio core)
+     - Comal County (New Braunfels area)
+     - Texas statewide trends
+
+2. **Growth Corridor Analysis:**
+   - Position within San Antonio-Austin corridor
+   - Infrastructure development impacts
+   - Suburban expansion patterns
+
+### Step 5.2: Economic Integration
+1. Use OnTheMap to analyze:
+   - Economic ties to San Antonio CBD
+   - Integration with other suburban communities
+   - Self-containment ratios (live and work locally)
+
+## Phase 6: Data Integration and Analysis
+
+### Step 6.1: Data Compilation
+1. **Create Master Dataset:**
+   - Compile all downloaded data into structured format
+   - Standardize time periods and geographic boundaries
+   - Create comparison matrices between cities
+
+2. **Key Indicators Dashboard:**
+   - Population growth rates by decade
+   - Employment growth trends
+   - Income/earnings progression
+   - Housing development timeline
+   - Commuting pattern evolution
+
+### Step 6.2: Trend Analysis
+1. **Growth Phase Identification:**
+   - Identify major growth periods
+   - Correlate with regional development
+   - Note infrastructure/policy impacts
+
+2. **Comparative Positioning:**
+   - Rank against similar Texas suburban communities
+   - Identify unique characteristics
+   - Assess competitive advantages
+
+## Expected Deliverables
+
+1. **Demographic Evolution Report:** Population, housing, and social characteristic trends
+2. **Economic Development Profile:** Employment, earnings, and business development patterns
+3. **Commuting and Labor Market Analysis:** Workforce mobility and economic integration
+4. **Historical Context Document:** Long-term growth trajectory and development phases
+5. **Comparative Analysis:** Positioning relative to regional peers
+
+## Data Limitations and Considerations
+
+- **Small Population Impact:** Some detailed breakdowns may not be available due to disclosure limitations
+- **Geographic Aggregation:** Some analyses may require county-level data as proxy
+- **Time Lag:** Most recent data typically 1-2 years behind current date
+- **Survey Margins of Error:** ACS estimates for smaller areas have larger confidence intervals
+- **Industry Classification Changes:** NAICS codes updated periodically, affecting historical comparisons
+
+## Tools Summary and Direct Links
+
+- **data.census.gov:** [https://data.census.gov/](https://data.census.gov/)
+- **OnTheMap:** [https://onthemap.ces.census.gov/](https://onthemap.ces.census.gov/)
+- **QWI Explorer:** [https://qwiexplorer.ces.census.gov/](https://qwiexplorer.ces.census.gov/)
+- **J2J Explorer:** [https://j2jexplorer.ces.census.gov/](https://j2jexplorer.ces.census.gov/)
+- **NHGIS:** [https://www.nhgis.org/](https://www.nhgis.org/)
+
+---
+
+*This workflow is designed to maximize the use of Census Bureau's built-in longitudinal analysis capabilities while minimizing the need for custom programming. Each phase builds upon the previous to create a comprehensive understanding of both communities' development trajectories.*

@@ -1,0 +1,365 @@
+# Flexible Longitudinal Analysis: User-Defined Years
+# Cibolo, TX vs Schertz, TX Comparison
+
+library(tidycensus)
+library(tidyverse)
+library(writexl)
+library(scales)
+
+#==============================================================================
+# STEP 1: SET YOUR ANALYSIS PARAMETERS (USER CUSTOMIZATION)
+#==============================================================================
+
+# SET YOUR YEARS HERE - Customize based on how far back you want to go
+ANALYSIS_YEARS <- 2009:2022  # Maximum ACS 5-year range (14 years!)
+# Alternative options:
+# ANALYSIS_YEARS <- 2015:2022  # Recent 8 years (faster processing)
+# ANALYSIS_YEARS <- c(2009, 2012, 2015, 2018, 2022)  # Every 3 years
+# ANALYSIS_YEARS <- 2010:2022  # Post-recession era
+
+# Set your cities
+CITIES <- c("Cibolo city, Texas", "Schertz city, Texas")
+
+# Choose your survey type
+SURVEY_TYPE <- "acs5"  # Use "acs1" if cities were >65k (they're not)
+
+#==============================================================================
+# DATA AVAILABILITY REFERENCE
+#==============================================================================
+
+# ACS 5-Year Estimates: 2009-2022 (14 years) - RECOMMENDED for small cities
+# ACS 1-Year Estimates: 2005-2022 (18 years) - Only for places 65,000+
+# Decennial Census: 1990, 2000, 2010, 2020 - Different variable structures
+# Population Estimates: 2000-2022 (annual) - Limited variables
+
+cat("=== DATA AVAILABILITY FOR SMALL CITIES (<65k population) ===\n")
+cat("ACS 5-Year Estimates: 2009-2022 (14 years maximum)\n")
+cat("Decennial Census: 1990, 2000, 2010, 2020 (limited variables)\n")
+cat("Population Estimates: 2000-2022 (population only)\n\n")
+
+cat("SELECTED ANALYSIS YEARS:", paste(ANALYSIS_YEARS, collapse = ", "), "\n")
+cat("TOTAL YEARS OF DATA:", length(ANALYSIS_YEARS), "\n\n")
+
+#==============================================================================
+# STEP 2: DEFINE VARIABLES (CUSTOMIZE AS NEEDED)
+#==============================================================================
+
+# Core variables available across all ACS years
+core_variables <- c(
+  # Population and Age (DP05)
+  total_pop = "DP05_0001",
+  median_age = "DP05_0018", 
+  under_18 = "DP05_0019P",
+  over_65 = "DP05_0024P",
+  
+  # Race/Ethnicity (DP05) 
+  white_alone = "DP05_0037P",
+  hispanic = "DP05_0071P",
+  
+  # Social Characteristics (DP02)
+  households = "DP02_0001",
+  avg_household_size = "DP02_0016",
+  married_couple_families = "DP02_0007P",
+  bachelor_plus = "DP02_0065P",
+  
+  # Economic Characteristics (DP03)
+  civilian_labor_force = "DP03_0002",
+  unemployment_rate = "DP03_0005P", 
+  median_hh_income = "DP03_0062",
+  per_capita_income = "DP03_0088",
+  poverty_rate = "DP03_0119P",
+  
+  # Housing Characteristics (DP04)
+  housing_units = "DP04_0001",
+  occupied_units = "DP04_0002",
+  owner_occupied = "DP04_0046P",
+  median_home_value = "DP04_0089",
+  median_gross_rent = "DP04_0134"
+)
+
+#==============================================================================
+# STEP 3: FLEXIBLE ANALYSIS FUNCTIONS
+#==============================================================================
+
+# Function to check data availability
+check_data_availability <- function(years, cities, variables) {
+  cat("Checking data availability for years:", paste(years, collapse = ", "), "\n")
+  
+  # Test first and last year
+  test_years <- c(min(years), max(years))
+  
+  for(yr in test_years) {
+    cat("Testing year", yr, "... ")
+    
+    tryCatch({
+      test_data <- get_acs(
+        geography = "place",
+        variables = variables[1:3], # Test with just a few variables
+        state = "TX",
+        year = yr,
+        survey = SURVEY_TYPE
+      ) %>%
+        filter(NAME %in% cities)
+      
+      if(nrow(test_data) > 0) {
+        cat("✓ Available\n")
+      } else {
+        cat("✗ No data for these cities\n")
+      }
+    }, error = function(e) {
+      cat("✗ Error:", e$message, "\n")
+    })
+  }
+}
+
+# Main longitudinal analysis function
+get_longitudinal_comparison <- function(years = ANALYSIS_YEARS, 
+                                       cities = CITIES,
+                                       variables = core_variables,
+                                       survey = SURVEY_TYPE) {
+  
+  cat("Starting longitudinal analysis...\n")
+  cat("Years:", paste(years, collapse = ", "), "\n")
+  cat("Cities:", paste(cities, collapse = ", "), "\n")
+  cat("Variables:", length(variables), "\n\n")
+  
+  # Get data for all years
+  longitudinal_data <- map_dfr(years, function(yr) {
+    cat("Fetching year", yr, "...")
+    
+    tryCatch({
+      yearly_data <- get_acs(
+        geography = "place",
+        variables = variables,
+        state = "TX",
+        year = yr,
+        survey = survey
+      ) %>%
+        filter(NAME %in% cities) %>%
+        mutate(
+          year = yr,
+          city = case_when(
+            str_detect(NAME, "Cibolo") ~ "Cibolo",
+            str_detect(NAME, "Schertz") ~ "Schertz",
+            TRUE ~ NAME
+          ),
+          # Create period labels for ACS 5-year estimates
+          period = if(survey == "acs5") paste0(yr-4, "-", yr) else as.character(yr)
+        ) %>%
+        select(city, year, period, variable, estimate, moe)
+      
+      cat(" ✓ Success (", nrow(yearly_data), " records)\n")
+      return(yearly_data)
+      
+    }, error = function(e) {
+      cat(" ✗ Error:", e$message, "\n")
+      return(tibble())
+    })
+  })
+  
+  if(nrow(longitudinal_data) == 0) {
+    stop("No data retrieved. Check your years, cities, and variables.")
+  }
+  
+  # Add variable labels
+  longitudinal_data <- longitudinal_data %>%
+    mutate(
+      variable_label = case_when(
+        variable == "total_pop" ~ "Total Population",
+        variable == "median_age" ~ "Median Age", 
+        variable == "under_18" ~ "Percent Under 18",
+        variable == "over_65" ~ "Percent Over 65",
+        variable == "white_alone" ~ "Percent White Alone",
+        variable == "hispanic" ~ "Percent Hispanic/Latino", 
+        variable == "households" ~ "Total Households",
+        variable == "avg_household_size" ~ "Average Household Size",
+        variable == "married_couple_families" ~ "Percent Married Couple Families",
+        variable == "bachelor_plus" ~ "Percent Bachelor's Degree or Higher",
+        variable == "civilian_labor_force" ~ "Civilian Labor Force",
+        variable == "unemployment_rate" ~ "Unemployment Rate (%)",
+        variable == "median_hh_income" ~ "Median Household Income ($)",
+        variable == "per_capita_income" ~ "Per Capita Income ($)",
+        variable == "poverty_rate" ~ "Poverty Rate (%)",
+        variable == "housing_units" ~ "Total Housing Units", 
+        variable == "occupied_units" ~ "Occupied Housing Units",
+        variable == "owner_occupied" ~ "Percent Owner Occupied",
+        variable == "median_home_value" ~ "Median Home Value ($)",
+        variable == "median_gross_rent" ~ "Median Gross Rent ($)",
+        TRUE ~ variable
+      ),
+      category = case_when(
+        variable %in% c("total_pop", "median_age", "under_18", "over_65", 
+                       "white_alone", "hispanic") ~ "Demographics",
+        variable %in% c("households", "avg_household_size", "married_couple_families", 
+                       "bachelor_plus") ~ "Social Characteristics", 
+        variable %in% c("civilian_labor_force", "unemployment_rate", "median_hh_income",
+                       "per_capita_income", "poverty_rate") ~ "Economic Characteristics",
+        variable %in% c("housing_units", "occupied_units", "owner_occupied",
+                       "median_home_value", "median_gross_rent") ~ "Housing Characteristics",
+        TRUE ~ "Other"
+      )
+    )
+  
+  cat("\nData collection complete!\n")
+  cat("Total records:", nrow(longitudinal_data), "\n")
+  cat("Years with data:", paste(sort(unique(longitudinal_data$year)), collapse = ", "), "\n\n")
+  
+  return(longitudinal_data)
+}
+
+# Function to create comparison tables by year
+create_yearly_comparison_tables <- function(data) {
+  
+  # Create wide format for each year
+  yearly_tables <- map(sort(unique(data$year)), function(yr) {
+    
+    year_data <- data %>%
+      filter(year == yr) %>%
+      select(city, variable_label, estimate, category) %>%
+      pivot_wider(
+        names_from = city,
+        values_from = estimate,
+        names_prefix = ""
+      ) %>%
+      mutate(
+        difference = Schertz - Cibolo,
+        ratio_schertz_to_cibolo = round(Schertz / Cibolo, 2),
+        year = yr
+      ) %>%
+      select(year, category, variable_label, Cibolo, Schertz, difference, ratio_schertz_to_cibolo) %>%
+      arrange(category, variable_label)
+    
+    return(year_data)
+  })
+  
+  names(yearly_tables) <- paste0("Year_", sort(unique(data$year)))
+  return(yearly_tables)
+}
+
+# Function to create trend analysis
+create_trend_analysis <- function(data) {
+  
+  trend_summary <- data %>%
+    group_by(city, variable_label) %>%
+    arrange(year) %>%
+    summarise(
+      years_available = n(),
+      first_year = min(year),
+      last_year = max(year),
+      first_value = first(estimate),
+      last_value = last(estimate),
+      total_change = last_value - first_value,
+      total_growth_pct = round(((last_value / first_value) - 1) * 100, 1),
+      # Calculate compound annual growth rate
+      cagr = round((((last_value / first_value)^(1/(last_year - first_year))) - 1) * 100, 2),
+      .groups = "drop"
+    ) %>%
+    arrange(variable_label, city)
+  
+  return(trend_summary)
+}
+
+#==============================================================================
+# STEP 4: RUN THE ANALYSIS
+#==============================================================================
+
+# Check data availability first
+cat("=== CHECKING DATA AVAILABILITY ===\n")
+check_data_availability(ANALYSIS_YEARS, CITIES, core_variables)
+
+cat("\n=== STARTING LONGITUDINAL ANALYSIS ===\n")
+# Get the longitudinal data
+longitudinal_data <- get_longitudinal_comparison()
+
+# Create yearly comparison tables
+yearly_tables <- create_yearly_comparison_tables(longitudinal_data)
+
+# Create trend analysis 
+trend_analysis <- create_trend_analysis(longitudinal_data)
+
+# Create overall comparison (most recent year)
+current_comparison <- yearly_tables[[length(yearly_tables)]]
+
+#==============================================================================
+# STEP 5: EXPORT RESULTS
+#==============================================================================
+
+# Create filename with year range
+year_range <- paste0(min(ANALYSIS_YEARS), "_", max(ANALYSIS_YEARS))
+filename <- paste0("cibolo_schertz_longitudinal_", year_range, ".xlsx")
+
+# Export to Excel with multiple sheets
+excel_sheets <- c(
+  list(
+    "Current_Comparison" = current_comparison,
+    "Trend_Analysis" = trend_analysis,
+    "Raw_Data" = longitudinal_data
+  ),
+  yearly_tables
+)
+
+write_xlsx(excel_sheets, path = filename)
+
+# Export trend analysis to CSV
+write_csv(trend_analysis, paste0("trend_analysis_", year_range, ".csv"))
+
+cat("=== ANALYSIS COMPLETE ===\n")
+cat("Excel file saved:", filename, "\n")
+cat("Trend analysis saved: trend_analysis_", year_range, ".csv\n")
+
+# Display summary
+cat("\n=== SUMMARY STATISTICS ===\n")
+cat("Analysis period:", min(ANALYSIS_YEARS), "to", max(ANALYSIS_YEARS), "\n")
+cat("Total years analyzed:", length(unique(longitudinal_data$year)), "\n")
+cat("Variables tracked:", length(unique(longitudinal_data$variable)), "\n")
+cat("Excel sheets created:", length(excel_sheets), "\n\n")
+
+# Show top trends
+cat("=== TOP GROWTH TRENDS ===\n")
+top_growth <- trend_analysis %>%
+  filter(total_growth_pct > 0) %>%
+  arrange(desc(total_growth_pct)) %>%
+  head(10)
+
+print(top_growth %>% select(city, variable_label, total_growth_pct, cagr))
+
+cat("\n=== LARGEST GAPS BETWEEN CITIES (Most Recent Year) ===\n")
+largest_gaps <- current_comparison %>%
+  mutate(abs_difference = abs(difference)) %>%
+  arrange(desc(abs_difference)) %>%
+  head(10)
+
+print(largest_gaps %>% select(variable_label, Cibolo, Schertz, difference, ratio_schertz_to_cibolo))
+
+#==============================================================================
+# STEP 6: QUICK ACCESS FUNCTIONS FOR USER
+#==============================================================================
+
+# Function to quickly change analysis years and re-run
+rerun_analysis <- function(new_years) {
+  cat("Re-running analysis with years:", paste(new_years, collapse = ", "), "\n")
+  
+  # Update global variable
+  ANALYSIS_YEARS <<- new_years
+  
+  # Re-run analysis
+  new_data <- get_longitudinal_comparison(years = new_years)
+  new_trend <- create_trend_analysis(new_data)
+  
+  # Quick export
+  year_range <- paste0(min(new_years), "_", max(new_years))
+  write_csv(new_trend, paste0("quick_trend_", year_range, ".csv"))
+  
+  cat("Quick analysis complete. Trend file saved.\n")
+  return(new_trend)
+}
+
+# Example usage:
+# rerun_analysis(2015:2022)  # Recent 8 years
+# rerun_analysis(c(2009, 2015, 2022))  # Just 3 snapshot years
+
+cat("\n=== QUICK RERUN OPTIONS ===\n")
+cat("To analyze different years, use:\n")
+cat("rerun_analysis(2015:2022)  # Recent 8 years\n")
+cat("rerun_analysis(c(2009, 2015, 2022))  # Snapshot years\n")
+cat("rerun_analysis(2010:2020)  # Exclude pandemic years\n")

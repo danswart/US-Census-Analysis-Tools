@@ -1,0 +1,41 @@
+city,variable_label,years_available,first_year,last_year,first_value,last_value,total_change,total_growth_pct,cagr
+Cibolo,Average Household Size,14,2009,2022,3.46,3.24,-0.21999999999999975,-6.4,-0.5
+Schertz,Average Household Size,14,2009,2022,3.41,2.78,-0.6300000000000003,-18.5,-1.56
+Cibolo,Civilian Labor Force,14,2009,2022,6506,15979,9473,145.6,7.16
+Schertz,Civilian Labor Force,14,2009,2022,14785,21624,6839,46.3,2.97
+Cibolo,Median Age,14,2009,2022,8209,36.1,-8172.9,-99.6,-34.13
+Schertz,Median Age,14,2009,2022,21362,38.2,-21323.8,-99.8,-38.53
+Cibolo,Median Gross Rent ($),14,2009,2022,356,1872,1516,425.8,13.62
+Schertz,Median Gross Rent ($),14,2009,2022,1917,1513,-404,-21.1,-1.8
+Cibolo,Median Home Value ($),14,2009,2022,3374,291500,288126,8539.6,40.92
+Schertz,Median Home Value ($),14,2009,2022,7782,272600,264818,3403,31.46
+Cibolo,Median Household Income ($),14,2009,2022,34,116510,116476,342576.5,87.03
+Schertz,Median Household Income ($),14,2009,2022,289,94173,93884,32485.8,56.07
+Cibolo,Occupied Housing Units,14,2009,2022,3825,10073,6248,163.3,7.73
+Schertz,Occupied Housing Units,14,2009,2022,9808,15199,5391,55,3.43
+Cibolo,Per Capita Income ($),14,2009,2022,95109,39420,-55689,-58.6,-6.55
+Schertz,Per Capita Income ($),14,2009,2022,88205,40324,-47881,-54.3,-5.84
+Cibolo,Percent Bachelor's Degree or Higher,14,2009,2022,14.5,23.6,9.100000000000001,62.8,3.82
+Schertz,Percent Bachelor's Degree or Higher,14,2009,2022,12,24.4,12.399999999999999,103.3,5.61
+Cibolo,Percent Hispanic/Latino,14,2009,2022,75.5,13.6,-61.9,-82,-12.35
+Schertz,Percent Hispanic/Latino,14,2009,2022,78.3,19.2,-59.099999999999994,-75.5,-10.25
+Cibolo,Percent Married Couple Families,14,2009,2022,2,0.6,-1.4,-70,-8.85
+Schertz,Percent Married Couple Families,14,2009,2022,0.8,1.2,0.3999999999999999,50,3.17
+Cibolo,Percent Over 65,14,2009,2022,54,10,-44,-81.5,-12.17
+Schertz,Percent Over 65,14,2009,2022,51.9,14,-37.9,-73,-9.59
+Cibolo,Percent Owner Occupied,14,2009,2022,11.8,84.4,72.60000000000001,615.3,16.34
+Schertz,Percent Owner Occupied,14,2009,2022,20.7,78.2,57.5,277.8,10.77
+Cibolo,Percent Under 18,14,2009,2022,64.8,27.9,-36.9,-56.9,-6.28
+Schertz,Percent Under 18,14,2009,2022,69.4,24.3,-45.10000000000001,-65,-7.76
+Cibolo,Percent White Alone,14,2009,2022,0,57.8,57.8,Inf,Inf
+Schertz,Percent White Alone,14,2009,2022,0,63.1,63.1,Inf,Inf
+Cibolo,Poverty Rate (%),14,2009,2022,NA,2.1,NA,NA,NA
+Schertz,Poverty Rate (%),14,2009,2022,NA,4.9,NA,NA,NA
+Cibolo,Total Households,14,2009,2022,3825,10073,6248,163.3,7.73
+Schertz,Total Households,14,2009,2022,9808,15199,5391,55,3.43
+Cibolo,Total Housing Units,14,2009,2022,4040,10735,6695,165.7,7.81
+Schertz,Total Housing Units,14,2009,2022,10524,15839,5315,50.5,3.19
+Cibolo,Total Population,14,2009,2022,11937,32640,20703,173.4,8.04
+Schertz,Total Population,14,2009,2022,28428,42545,14117,49.7,3.15
+Cibolo,Unemployment Rate (%),14,2009,2022,2.4,3.5,1.1,45.8,2.94
+Schertz,Unemployment Rate (%),14,2009,2022,4.5,3.9,-0.6000000000000001,-13.3,-1.09

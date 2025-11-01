@@ -1,0 +1,409 @@
+---
+title: "Line Charts for Schertz v Cibolo"
+author: "Dan Swart"
+format: html
+---
+
+This R code creates a comprehensive year-over-year analysis that's perfect for line chart visualization. Here's what it delivers:
+Key Features:
+
+8 Years of Data (2015-2022) - More than the 5+ years requested
+Individual City Analysis - Separate datasets for Cibolo and Schertz
+Combined Chart-Ready Data - Optimized for line charts with years on x-axis
+16 Key Variables - Demographics, economics, education, housing
+Automated Chart Generation - Creates professional line charts for any variable
+
+What You'll Get:
+Data Files:
+
+cibolo_schertz_longitudinal_long.csv - Perfect for ggplot2 line charts
+cibolo_schertz_longitudinal_wide.csv - Excel-friendly comparison format
+cibolo_longitudinal.csv - Cibolo data only
+schertz_longitudinal.csv - Schertz data only
+Excel workbook with multiple organized sheets
+
+Visualizations:
+
+Automatic charts for 5 key indicators
+Easy chart function: plot_comparison('Variable Name')
+Growth rate analysis showing compound annual growth
+
+Variables Tracked:
+Demographics: Population, Median Age, Age Distribution, Hispanic %
+Economics: Median Income, Per Capita Income, Unemployment, Poverty
+Education: Bachelor's Degree %, Married Couples %, Household Size
+Housing: Home Values, Rent, Ownership Rates, Vacancy Rates
+
+
+Usage Examples:
+
+# Create any line chart instantly:
+plot_comparison('Total Population')
+plot_comparison('Median Household Income') 
+plot_comparison('Median Home Value')
+
+# Save charts automatically:
+plot_comparison('Percent Bachelor\'s Degree+', save_plot = TRUE)
+
+
+Line Chart Benefits:
+
+Years on x-axis as requested
+Separate colored lines for each city
+Professional formatting (dollar signs, percentages, commas)
+Trend analysis - easily spot growth, decline, or convergence
+Quick comparisons - see which city is ahead and by how much
+
+This approach makes it "trivially easy" to compare the cities on any measure - just call plot_comparison() with any variable name and you get an instant professional line chart showing both cities' trends over 8 years.
+
+
+
+
+```{r}
+
+# Longitudinal Analysis: Cibolo vs Schertz Year-over-Year Comparison
+# Creating data optimized for line chart visualization
+
+# Load required libraries
+library(tidycensus)
+library(tidyverse)
+library(writexl)
+library(scales)
+library(ggplot2)
+
+# Set up Census API key (get free key from https://api.census.gov/data/key_signup.html)
+# census_api_key("YOUR_API_KEY_HERE", install = TRUE) # Run once to save key
+
+# Define the cities for comparison
+cities <- c("Cibolo city, Texas", "Schertz city, Texas")
+
+# Define years for analysis (5+ years as requested)
+# Using ACS 5-year estimates - each represents a 5-year average
+analysis_years <- 2015:2022
+
+# Define key variables for longitudinal tracking
+# Focus on variables that are meaningful to track over time
+longitudinal_vars <- c(
+  # Population and Demographics
+  total_pop = "DP05_0001",
+  median_age = "DP05_0018",
+  under_18_pct = "DP05_0019P",
+  over_65_pct = "DP05_0024P",
+  hispanic_pct = "DP05_0071P",
+  
+  # Education and Social
+  bachelor_plus_pct = "DP02_0065P",
+  married_couple_families_pct = "DP02_0007P",
+  avg_household_size = "DP02_0016",
+  
+  # Economic Indicators
+  median_hh_income = "DP03_0062",
+  per_capita_income = "DP03_0088", 
+  unemployment_rate = "DP03_0005P",
+  poverty_rate = "DP03_0119P",
+  
+  # Housing Market
+  median_home_value = "DP04_0089",
+  median_gross_rent = "DP04_0134",
+  owner_occupied_pct = "DP04_0046P",
+  vacancy_rate = "DP04_0003P"
+)
+
+# Function to get longitudinal data for both cities
+get_longitudinal_data <- function(variables, years) {
+  
+  # Get data for all years and cities
+  longitudinal_data <- map_dfr(years, function(yr) {
+    
+    cat("Fetching data for year:", yr, "\n")
+    
+    get_acs(
+      geography = "place",
+      variables = variables,
+      state = "TX",
+      year = yr,
+      survey = "acs5"
+    ) %>%
+      filter(NAME %in% cities) %>%
+      mutate(
+        year = yr,
+        city = case_when(
+          str_detect(NAME, "Cibolo") ~ "Cibolo",
+          str_detect(NAME, "Schertz") ~ "Schertz"
+        ),
+        # Create period labels for ACS 5-year estimates
+        period = paste0(yr-4, "-", yr)
+      ) %>%
+      select(city, year, period, variable, estimate, moe)
+  })
+  
+  return(longitudinal_data)
+}
+
+# Get the longitudinal data
+cat("Fetching longitudinal data for", length(analysis_years), "years...\n")
+longitudinal_data <- get_longitudinal_data(longitudinal_vars, analysis_years)
+
+# Add variable labels for better visualization
+longitudinal_data <- longitudinal_data %>%
+  mutate(
+    variable_label = case_when(
+      variable == "total_pop" ~ "Total Population",
+      variable == "median_age" ~ "Median Age",
+      variable == "under_18_pct" ~ "Percent Under 18",
+      variable == "over_65_pct" ~ "Percent Over 65", 
+      variable == "hispanic_pct" ~ "Percent Hispanic/Latino",
+      variable == "bachelor_plus_pct" ~ "Percent Bachelor's Degree+",
+      variable == "married_couple_families_pct" ~ "Percent Married Couple Families",
+      variable == "avg_household_size" ~ "Average Household Size",
+      variable == "median_hh_income" ~ "Median Household Income",
+      variable == "per_capita_income" ~ "Per Capita Income",
+      variable == "unemployment_rate" ~ "Unemployment Rate (%)",
+      variable == "poverty_rate" ~ "Poverty Rate (%)",
+      variable == "median_home_value" ~ "Median Home Value",
+      variable == "median_gross_rent" ~ "Median Gross Rent", 
+      variable == "owner_occupied_pct" ~ "Percent Owner Occupied",
+      variable == "vacancy_rate" ~ "Vacancy Rate (%)",
+      TRUE ~ variable
+    ),
+    # Add categories for grouping
+    category = case_when(
+      variable %in% c("total_pop", "median_age", "under_18_pct", "over_65_pct", "hispanic_pct") ~ "Demographics",
+      variable %in% c("bachelor_plus_pct", "married_couple_families_pct", "avg_household_size") ~ "Social Characteristics",
+      variable %in% c("median_hh_income", "per_capita_income", "unemployment_rate", "poverty_rate") ~ "Economic",
+      variable %in% c("median_home_value", "median_gross_rent", "owner_occupied_pct", "vacancy_rate") ~ "Housing",
+      TRUE ~ "Other"
+    )
+  )
+
+# Create separate datasets for each city (as requested)
+cibolo_data <- longitudinal_data %>%
+  filter(city == "Cibolo") %>%
+  arrange(variable, year)
+
+schertz_data <- longitudinal_data %>%
+  filter(city == "Schertz") %>%
+  arrange(variable, year)
+
+# Create wide format for easy Excel analysis
+longitudinal_wide <- longitudinal_data %>%
+  select(city, year, variable_label, estimate) %>%
+  pivot_wider(
+    names_from = city,
+    values_from = estimate,
+    names_prefix = ""
+  ) %>%
+  mutate(
+    difference = Schertz - Cibolo,
+    schertz_growth_rate = (Schertz / lag(Schertz, order_by = year) - 1) * 100,
+    cibolo_growth_rate = (Cibolo / lag(Cibolo, order_by = year) - 1) * 100
+  ) %>%
+  arrange(variable_label, year)
+
+# Function to create line charts for any variable
+create_line_chart <- function(data, var_name, title_suffix = "") {
+  
+  chart_data <- data %>%
+    filter(variable_label == var_name)
+  
+  if(nrow(chart_data) == 0) {
+    cat("Variable '", var_name, "' not found.\n")
+    return(NULL)
+  }
+  
+  # Determine if we need dollar formatting
+  is_dollar <- str_detect(var_name, "Income|Value|Rent")
+  is_percent <- str_detect(var_name, "Percent|Rate|%")
+  
+  p <- ggplot(chart_data, aes(x = year, y = estimate, color = city, group = city)) +
+    geom_line(size = 1.2) +
+    geom_point(size = 3) +
+    labs(
+      title = paste0(var_name, " Comparison: Cibolo vs Schertz", title_suffix),
+      subtitle = paste0("ACS 5-Year Estimates, ", min(chart_data$year), "-", max(chart_data$year)),
+      x = "Year",
+      y = var_name,
+      color = "City",
+      caption = "Source: US Census Bureau, American Community Survey"
+    ) +
+    theme_minimal() +
+    theme(
+      plot.title = element_text(size = 14, face = "bold"),
+      plot.subtitle = element_text(size = 12),
+      legend.position = "bottom",
+      panel.grid.minor = element_blank()
+    ) +
+    scale_color_manual(values = c("Cibolo" = "#1f77b4", "Schertz" = "#ff7f0e"))
+  
+  # Add appropriate y-axis formatting
+  if(is_dollar) {
+    p <- p + scale_y_continuous(labels = dollar_format())
+  } else if(is_percent) {
+    p <- p + scale_y_continuous(labels = function(x) paste0(x, "%"))
+  } else if(max(chart_data$estimate, na.rm = TRUE) > 1000) {
+    p <- p + scale_y_continuous(labels = comma_format())
+  }
+  
+  return(p)
+}
+
+# Create example charts for key indicators
+key_indicators <- c(
+  "Total Population",
+  "Median Household Income", 
+  "Median Home Value",
+  "Percent Bachelor's Degree+",
+  "Unemployment Rate (%)"
+)
+
+# Generate charts
+charts <- map(key_indicators, ~create_line_chart(longitudinal_data, .x))
+names(charts) <- key_indicators
+
+# Display charts
+walk2(charts, names(charts), function(chart, name) {
+  if(!is.null(chart)) {
+    print(chart)
+    cat("\n--- Chart for", name, "created ---\n\n")
+  }
+})
+
+# Export data in multiple formats
+
+# # 1. Long format (best for ggplot2)
+# write_csv(longitudinal_data, "cibolo_schertz_longitudinal_long.csv")
+# 
+# # 2. Wide format (best for Excel analysis)  
+# write_csv(longitudinal_wide, "cibolo_schertz_longitudinal_wide.csv")
+# 
+# # 3. Separate city files
+# write_csv(cibolo_data, "cibolo_longitudinal.csv")
+# write_csv(schertz_data, "schertz_longitudinal.csv")
+# 
+# # 4. Excel workbook with multiple sheets
+# chart_ready_data <- longitudinal_data %>%
+#   select(city, year, period, category, variable_label, estimate, moe) %>%
+#   arrange(category, variable_label, city, year)
+# 
+# write_xlsx(
+#   list(
+#     "Chart_Ready_Data" = chart_ready_data,
+#     "Wide_Format" = longitudinal_wide,
+#     "Cibolo_Only" = cibolo_data,
+#     "Schertz_Only" = schertz_data,
+#     "Variable_List" = tibble(
+#       variable_code = names(longitudinal_vars),
+#       variable_label = unname(longitudinal_vars),
+#       description = "ACS 5-Year Estimates"
+#     )
+#   ),
+#   path = "cibolo_schertz_longitudinal_analysis.xlsx"
+# )
+
+# Print summary statistics
+cat("\n=== LONGITUDINAL ANALYSIS SUMMARY ===\n")
+cat("Years analyzed:", min(analysis_years), "to", max(analysis_years), "\n")
+cat("Variables tracked:", length(longitudinal_vars), "\n")
+cat("Total observations:", nrow(longitudinal_data), "\n")
+
+# Show available variables for plotting
+cat("\n=== AVAILABLE VARIABLES FOR LINE CHARTS ===\n")
+available_vars <- longitudinal_data %>%
+  distinct(category, variable_label) %>%
+  arrange(category, variable_label)
+
+for(cat_name in unique(available_vars$category)) {
+  cat("\n", cat_name, ":\n")
+  vars_in_cat <- available_vars %>% filter(category == cat_name) %>% pull(variable_label)
+  cat(paste("-", vars_in_cat), sep = "\n")
+}
+
+# Function to easily create charts for any variable (for user)
+plot_comparison <- function(variable_name, save_plot = FALSE, width = 10, height = 6) {
+  chart <- create_line_chart(longitudinal_data, variable_name)
+  
+  if(!is.null(chart)) {
+    print(chart)
+    
+    if(save_plot) {
+      filename <- paste0(str_replace_all(str_to_lower(variable_name), "[^a-z0-9]", "_"), "_comparison.png")
+      ggsave(filename, chart, width = width, height = height, dpi = 300)
+      cat("Chart saved as:", filename, "\n")
+    }
+  }
+  
+  return(chart)
+}
+
+cat("\n=== USAGE EXAMPLES ===\n")
+cat("To create a line chart for any variable, use:\n")
+cat("plot_comparison('Total Population')\n")
+cat("plot_comparison('Median Household Income', save_plot = TRUE)\n")
+cat("\nAll data is also exported to CSV and Excel files for external analysis.\n")
+
+# Create specific Per Capita Income comparison chart
+cat("\n=== PER CAPITA INCOME COMPARISON CHART ===\n")
+per_capita_chart <- create_line_chart(longitudinal_data, "Per Capita Income")
+
+if(!is.null(per_capita_chart)) {
+  print(per_capita_chart)
+  
+  # Save the chart
+  ggsave("per_capita_income_comparison.png", per_capita_chart, 
+         width = 10, height = 6, dpi = 300)
+  cat("Per Capita Income comparison chart saved as: per_capita_income_comparison.png\n")
+  
+  # Show summary statistics for per capita income
+  per_capita_summary <- longitudinal_data %>%
+    filter(variable_label == "Per Capita Income") %>%
+    group_by(city) %>%
+    summarise(
+      min_year = min(year),
+      max_year = max(year),
+      start_income = first(estimate, order_by = year),
+      end_income = last(estimate, order_by = year),
+      total_change = end_income - start_income,
+      total_growth_pct = round(((end_income / start_income) - 1) * 100, 1),
+      avg_annual_growth = round((((end_income / start_income)^(1/(max(year) - min(year)))) - 1) * 100, 2),
+      .groups = "drop"
+    )
+  
+  cat("\nPer Capita Income Summary:\n")
+  print(per_capita_summary)
+  
+  # Show which city had higher per capita income each year
+  per_capita_yearly <- longitudinal_data %>%
+    filter(variable_label == "Per Capita Income") %>%
+    select(city, year, estimate) %>%
+    pivot_wider(names_from = city, values_from = estimate) %>%
+    mutate(
+      difference = Schertz - Cibolo,
+      leader = ifelse(Schertz > Cibolo, "Schertz", "Cibolo"),
+      gap_pct = round(abs(difference) / pmin(Schertz, Cibolo) * 100, 1)
+    )
+  
+  cat("\nYear-by-Year Per Capita Income Comparison:\n")
+  print(per_capita_yearly)
+}
+
+# Sample year-over-year growth analysis
+cat("\n=== SAMPLE GROWTH ANALYSIS ===\n")
+growth_summary <- longitudinal_data %>%
+  filter(variable_label %in% c("Total Population", "Median Household Income", "Median Home Value", "Per Capita Income")) %>%
+  group_by(city, variable_label) %>%
+  summarise(
+    start_value = first(estimate, order_by = year),
+    end_value = last(estimate, order_by = year),
+    total_growth_pct = round(((end_value / start_value) - 1) * 100, 1),
+    annual_growth_rate = round((((end_value / start_value)^(1/(max(year) - min(year)))) - 1) * 100, 2),
+    .groups = "drop"
+  ) %>%
+  arrange(variable_label, city)
+
+print(growth_summary)
+
+```
+
+
+
+

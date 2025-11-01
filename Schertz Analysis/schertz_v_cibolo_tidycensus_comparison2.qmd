@@ -1,0 +1,68 @@
+---
+title: "schertz_v_cibolo_tidycensus_comparison2"
+author: "Dan Swart"
+format: html
+---
+
+Data Availability for Longitudinal Analysis:
+Maximum Range Available:
+
+ACS 5-Year Estimates: 2009-2022 (14 years!)
+ACS 1-Year Estimates: 2005-2022 (but only for places 65,000+, so not applicable)
+Decennial Census: 1990, 2000, 2010, 2020 (different variable structures)
+Population Estimates: 2000-2022 (limited to population data only)
+
+Recommended for Small Cities (<65k): ACS 5-year estimates give you the maximum of 14 years (2009-2022)
+Key Features of the New Code:
+Step 1: User Sets Years First
+
+# SET YOUR YEARS HERE - Customize at the top
+ANALYSIS_YEARS <- 2009:2022  # Maximum range (14 years!)
+# Or customize:
+# ANALYSIS_YEARS <- 2015:2022  # Recent 8 years
+# ANALYSIS_YEARS <- c(2009, 2012, 2015, 2018, 2022)  # Every 3 years
+
+Built-in Data Availability Checker
+
+Tests your years before running full analysis
+Shows which years have data for your cities
+Prevents wasted time on unavailable data
+
+Flexible Rerun Function
+
+# Quickly change years and re-run:
+rerun_analysis(2015:2022)  # Recent 8 years
+rerun_analysis(c(2009, 2015, 2022))  # Snapshot years
+rerun_analysis(2010:2020)  # Exclude pandemic years
+
+Rich Output Options
+
+Excel workbook with separate sheets for each year
+Trend analysis with compound annual growth rates
+Current vs. historical comparisons
+CSV exports for external analysis
+
+Advantages Over Your Current Code:
+
+More Years: 14 years vs. your current 5 years
+User Control: Set years once at the top, everything else adapts
+Data Validation: Checks availability before processing
+Trend Analysis: Automatic growth rate calculations
+Flexible Output: Year-by-year sheets plus trend summaries
+Quick Iteration: Easy to test different year ranges
+
+Bottom Line: You can get 14 years of detailed demographic, economic, and housing data (2009-2022) - nearly triple what most analyses use and far more informative for understanding long-term trends!
+
+
+
+
+
+
+
+
+```{r}
+
+
+
+```
+

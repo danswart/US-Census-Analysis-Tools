@@ -1,0 +1,141 @@
+---
+title: "Create TidyCensus Codebook for Selected Variables"
+format: html
+---
+
+
+It is better to avoid creating objects in global environment. Instead, they can be stored in a list. 
+
+
+```{r}
+
+library(tidycensus)
+library(stringr)
+library(purrr)
+library(dplyr)
+
+```
+
+Define Your Variables
+
+```{r}
+
+# This goes into global environment
+dv_acs = c(
+  hus = "B25002_001",
+  husocc = "B25002_002",
+  husvac = "B25002_003"
+  )
+
+```
+
+Retrieve Variables Using a Loop; Stores Interim Steps in Global Environment
+
+```{r}
+
+# Create an empty list to hold results
+yearly_dfs <- list()
+
+# Build a list of tibbles, each containing the content of the 'label' and 'concept' columns for each year specified for each variable defined above
+
+# Loop over these years
+for (yr in 2009:2011) {
+  
+  nm <- stringr::str_c(c("label", "concept"), "_", yr)
+  
+  yearly_dfs[[as.character(yr)]] <- tidycensus::load_variables(yr, "acs5") %>%
+    # dplyr::select(-dplyr::any_of("geography")) %>%
+    dplyr::filter(name %in% dv_acs) %>%
+    dplyr::arrange(match(name, dv_acs)) %>%
+    dplyr::mutate(id = names(dv_acs), .before = 1) %>%
+    dplyr::rename_with(~ nm, c("label", "concept"))
+}
+
+# Combine everything with full_join in WIDE format (Reduce is a base R function)
+output1_forloop <- Reduce(dplyr::full_join, yearly_dfs)
+
+output1_forloop
+
+
+```
+
+
+### Understanding the 'output1_forloop' code:
+
+#### During the loop:
+
+- You populate yearly_dfs with a data frame for each year (yearly_dfs[["2009"]], yearly_dfs[["2010"]], etc.).
+
+These are stored in the list, but also yearly_dfs itself is now a named list in your global environment.
+
+#### After the loop:
+
+- You call Reduce(dplyr::full_join, yearly_dfs) to combine them into a single tibble.
+
+- The result is stored in the object 'output1_forloop'.
+
+- Both 'yearly_dfs' (the list of per-year tibbles) and 'output1_forloop' remain in your global environment.
+
+#### So after running this, your environment will have:
+
+- yearly_dfs → a list containing 12 separate tibbles (one per year).
+
+- output1_forloop → the final combined tibble (the only one I want).
+
+
+This is why purrr::map() + purrr::reduce() are often preferred — they do the same thing without leaving the list of intermediate tibbles behind in the Global Environment.
+
+
+
+### If we want everything in the list WITHOUT having to create interim objects in the global environment"
+
+```{r}
+
+output2 <- purrr::map(2009:2020, ~ {
+  nm <- stringr::str_c(c("label", "concept"), "_", .x)
+    tidycensus::load_variables(.x, "acs5") %>%
+    dplyr::select(-dplyr::any_of("geography")) %>%
+    dplyr::filter(name %in% dv_acs) %>%
+    dplyr::arrange(match(name, dv_acs)) %>%
+    dplyr::mutate(id = names(dv_acs), .before = 1) %>%
+    dplyr::rename_with(~ nm, c("label", "concept"))
+}) %>%
+  purrr::reduce(dplyr::full_join)
+
+output2
+
+```
+
+
+Understanding the 'output2' Code
+
+- purrr::map(2009:2020, ~ {...}): This iterates over the years from 2009 to 2020.
+
+- tidycensus::load_variables(.x, "acs5"): Loads the variables for each year.
+
+- dplyr::select(-dplyr::any_of("geography")): Excludes the geography variable, focusing on the variables of interest.
+
+- dplyr::filter(name %in% dv_acs): Filters the dataset to include only the selected variables.
+
+- dplyr::arrange(match(name, dv_acs)): Orders the results according to the specified variable names.
+
+- dplyr::mutate(id = names(dv_acs), .before = 1): Adds an ID column for easy identification of variables.
+
+- dplyr::rename_with(..., c("label", "concept")): Dynamically renames columns to include the year suffix.
+
+
+
+Review the Output
+
+The final output will be a comprehensive tibble that includes all relevant variables across the specified years:
+
+[[See Video to Reveal this Text or Code Snippet]]
+
+This will give you a tidy dataset containing separate columns for each variable's label and concept for each year, making it easy to spot any discrepancies or changes over time.
+
+Conclusion
+
+By utilizing lists and leveraging the power of the tidycensus package in R, we can efficiently construct a complete codebook for selected census variables over multiple years without cluttering the global environment. This method not only streamlines the process but also enhances clarity and efficiency in your data analysis tasks.
+
+So, the next time you're faced with the challenge of creating a codebook across years, remember to keep your data organized and leverage R’s robust functionality to automate the process!
+

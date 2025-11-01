@@ -1,0 +1,108 @@
+---
+title: "US Census Bureau Built-in Analysis Applications for Longitudinal Data"
+author: "Research Notes"
+date: today
+format: html
+---
+
+## Overview
+
+The US Census Bureau provides several built-in analysis applications available to the public that are particularly useful for longitudinal data analysis. These web-based tools can often eliminate the need to create custom R programs for standard analyses.
+
+## LEHD (Longitudinal Employer-Household Dynamics) Applications
+
+The LEHD program offers the most comprehensive suite of longitudinal analysis tools:
+
+### QWI Explorer
+**Web Address:** [https://qwiexplorer.ces.census.gov/](https://qwiexplorer.ces.census.gov/)
+
+Web-based analysis tool that enables comprehensive access to the Quarterly Workforce Indicators (QWI) dataset. Through charts, maps and interactive tables, users can compare, rank and aggregate QWIs across time, geography, and/or firm and worker characteristics on the fly.
+
+**Key Features:**
+- Longitudinal workforce indicators
+- Interactive pivot tables
+- Visualization in line charts, bar charts, and thematic maps
+- Analysis by firm and worker characteristics
+
+### Job-to-Job Flows (J2J) Explorer
+**Web Address:** [https://j2jexplorer.ces.census.gov/](https://j2jexplorer.ces.census.gov/)
+
+Web-based analysis tool that enables comprehensive access to statistics on worker reallocation in the United States. J2J traces worker earnings and movements through industries, geographic labor markets, and to/from employment using longitudinal administrative data on workers' job histories.
+
+**Key Features:**
+- Worker mobility analysis
+- Earnings comparisons over time
+- Industry and geographic flow analysis
+- Interactive dashboard interface
+
+### OnTheMap
+**Web Address:** [https://onthemap.ces.census.gov/](https://onthemap.ces.census.gov/)
+
+Online mapping and reporting application showing where workers are employed and where they live with companion reports on worker characteristics and optional filtering by age, earnings, or industry groups.
+
+**Key Features:**
+- Workplace and residential mapping
+- Commuting pattern analysis
+- Worker characteristic reports
+- Census block level detail
+
+### PSEO Explorer
+**Web Address:** Available through the LEHD applications page
+
+Interactive visualization tool that enables access to statistics on employment outcomes of graduates of select post-secondary institutions in the United States, showing employment and earnings outcomes for college and university graduates.
+
+### LED Extraction Tool
+**Web Address:** Available through LEHD data page
+
+Provides easy access to the raw data products produced through the Local Employment Dynamics (LED) Partnership, allowing access to the Quarterly Workforce Indicators (QWI) and Job-to-Job Flows (J2J) datasets via a simple query-building interface.
+
+## Main Census Bureau Platform
+
+### data.census.gov
+**Web Address:** [https://data.census.gov/](https://data.census.gov/)
+
+The primary platform to access data and digital content from the U.S. Census Bureau, replacing the discontinued American FactFinder.
+
+## External Longitudinal Analysis Tools
+
+### NHGIS (National Historical Geographic Information System)
+**Web Address:** [https://www.nhgis.org/](https://www.nhgis.org/)
+
+Provides easy access to summary tables and time series of population, housing, agriculture, and economic data, along with GIS-compatible mapping files, for years from 1790 through the present and for all levels of U.S. census geography. NHGIS time series tables link together comparable statistics from multiple censuses in one table with standardized labels and codes for all years.
+
+**Key Features:**
+- Historical data from 1790 to present
+- Time series tables with standardized coding
+- GIS-compatible boundary files
+- Longitudinal tract boundary normalization
+
+### Longitudinal Tract Database (Brown University)
+**Web Address:** Referenced in research guides
+
+Allows researchers to analyze census tract data with constant boundaries for the period 1970-2010. Users can import their own data (such as crime or health data for census tracts) and convert it themselves to 2010 boundaries.
+
+## Specialized Analysis Tools
+
+### Business Dynamics Statistics (BDS) Explorer
+**Web Address:** Referenced in Census data tools
+
+Analyze the Business Dynamics Statistics (BDS) data through interactive charts, maps and tables.
+
+### American Housing Survey (AHS) Table Creator
+**Web Address:** Referenced in Census data tools
+
+Gives you the ability to create customized tables from the American Housing Survey without having to use the Public Use File (microdata).
+
+## Recommendations for Longitudinal Analysis
+
+**For workforce/employment analysis:** The LEHD applications (QWI Explorer, J2J Explorer, and OnTheMap) are particularly well-suited for longitudinal workforce and employment analysis.
+
+**For historical demographic analysis:** NHGIS excels for historical demographic comparisons across time periods from 1790 to present.
+
+**For tract-level longitudinal studies:** The Longitudinal Tract Database provides normalized boundaries for consistent geographic analysis over time.
+
+These tools can significantly reduce development time compared to writing custom R programs, especially for standard longitudinal analyses and exploratory data analysis.
+
+---
+
+*Note: This document compiled from US Census Bureau resources as of September 2025. Web addresses and tool availability may change over time.*

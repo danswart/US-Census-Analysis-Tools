@@ -1,0 +1,449 @@
+date,value,city,period,category,variable_label,moe,variable
+2009,8209,Cibolo,2005-2009,Demographics,Median Age,373,median_age
+2009,75.5,Cibolo,2005-2009,Demographics,Percent Hispanic/Latino,5.3,hispanic_pct
+2009,54,Cibolo,2005-2009,Demographics,Percent Over 65,2.6,over_65_pct
+2009,64.8,Cibolo,2005-2009,Demographics,Percent Under 18,3,under_18_pct
+2009,11937,Cibolo,2005-2009,Demographics,Total Population,34,total_pop
+2009,34,Cibolo,2005-2009,Economic,Median Household Income,40,median_hh_income
+2009,95109,Cibolo,2005-2009,Economic,Per Capita Income,6021,per_capita_income
+2009,NA,Cibolo,2005-2009,Economic,Poverty Rate (%),0,poverty_rate
+2009,2.4,Cibolo,2005-2009,Economic,Unemployment Rate (%),1,unemployment_rate
+2009,356,Cibolo,2005-2009,Housing,Median Gross Rent,146,median_gross_rent
+2009,3374,Cibolo,2005-2009,Housing,Median Home Value,245,median_home_value
+2009,11.8,Cibolo,2005-2009,Housing,Percent Owner Occupied,3.5,owner_occupied_pct
+2009,5.3,Cibolo,2005-2009,Housing,Vacancy Rate (%),3.5,vacancy_rate
+2009,3.46,Cibolo,2005-2009,Social Characteristics,Average Household Size,0.18,avg_household_size
+2009,14.5,Cibolo,2005-2009,Social Characteristics,Percent Bachelor's Degree+,3.1,bachelor_plus_pct
+2009,2,Cibolo,2005-2009,Social Characteristics,Percent Married Couple Families,1.7,married_couple_families_pct
+2009,21362,Schertz,2005-2009,Demographics,Median Age,511,median_age
+2009,78.3,Schertz,2005-2009,Demographics,Percent Hispanic/Latino,2.8,hispanic_pct
+2009,51.9,Schertz,2005-2009,Demographics,Percent Over 65,1.8,over_65_pct
+2009,69.4,Schertz,2005-2009,Demographics,Percent Under 18,1.9,under_18_pct
+2009,28428,Schertz,2005-2009,Demographics,Total Population,285,total_pop
+2009,289,Schertz,2005-2009,Economic,Median Household Income,122,median_hh_income
+2009,88205,Schertz,2005-2009,Economic,Per Capita Income,3860,per_capita_income
+2009,NA,Schertz,2005-2009,Economic,Poverty Rate (%),0,poverty_rate
+2009,4.5,Schertz,2005-2009,Economic,Unemployment Rate (%),1.3,unemployment_rate
+2009,1917,Schertz,2005-2009,Housing,Median Gross Rent,267,median_gross_rent
+2009,7782,Schertz,2005-2009,Housing,Median Home Value,407,median_home_value
+2009,20.7,Schertz,2005-2009,Housing,Percent Owner Occupied,2.6,owner_occupied_pct
+2009,6.8,Schertz,2005-2009,Housing,Vacancy Rate (%),1.9,vacancy_rate
+2009,3.41,Schertz,2005-2009,Social Characteristics,Average Household Size,0.1,avg_household_size
+2009,12,Schertz,2005-2009,Social Characteristics,Percent Bachelor's Degree+,1.6,bachelor_plus_pct
+2009,0.8,Schertz,2005-2009,Social Characteristics,Percent Married Couple Families,0.4,married_couple_families_pct
+2010,8746,Cibolo,2006-2010,Demographics,Median Age,260,median_age
+2010,73.2,Cibolo,2006-2010,Demographics,Percent Hispanic/Latino,4.2,hispanic_pct
+2010,53.6,Cibolo,2006-2010,Demographics,Percent Over 65,2.1,over_65_pct
+2010,61.8,Cibolo,2006-2010,Demographics,Percent Under 18,2.1,under_18_pct
+2010,13037,Cibolo,2006-2010,Demographics,Total Population,45,total_pop
+2010,85305,Cibolo,2006-2010,Economic,Median Household Income,4559,median_hh_income
+2010,31575,Cibolo,2006-2010,Economic,Per Capita Income,2172,per_capita_income
+2010,1.9,Cibolo,2006-2010,Economic,Poverty Rate (%),1.3,poverty_rate
+2010,2.8,Cibolo,2006-2010,Economic,Unemployment Rate (%),1,unemployment_rate
+2010,430,Cibolo,2006-2010,Housing,Median Gross Rent,144,median_gross_rent
+2010,3764,Cibolo,2006-2010,Housing,Median Home Value,244,median_home_value
+2010,11.2,Cibolo,2006-2010,Housing,Percent Owner Occupied,3.9,owner_occupied_pct
+2010,4.9,Cibolo,2006-2010,Housing,Vacancy Rate (%),2.2,vacancy_rate
+2010,3.46,Cibolo,2006-2010,Social Characteristics,Average Household Size,0.13,avg_household_size
+2010,14.8,Cibolo,2006-2010,Social Characteristics,Percent Bachelor's Degree+,2.6,bachelor_plus_pct
+2010,0.9,Cibolo,2006-2010,Social Characteristics,Percent Married Couple Families,0.6,married_couple_families_pct
+2010,20876,Schertz,2006-2010,Demographics,Median Age,414,median_age
+2010,78.1,Schertz,2006-2010,Demographics,Percent Hispanic/Latino,2.2,hispanic_pct
+2010,52.5,Schertz,2006-2010,Demographics,Percent Over 65,1.2,over_65_pct
+2010,69.5,Schertz,2006-2010,Demographics,Percent Under 18,1.4,under_18_pct
+2010,28423,Schertz,2006-2010,Demographics,Total Population,288,total_pop
+2010,73267,Schertz,2006-2010,Economic,Median Household Income,4062,median_hh_income
+2010,29824,Schertz,2006-2010,Economic,Per Capita Income,1217,per_capita_income
+2010,4.1,Schertz,2006-2010,Economic,Poverty Rate (%),1.4,poverty_rate
+2010,4.6,Schertz,2006-2010,Economic,Unemployment Rate (%),0.9,unemployment_rate
+2010,1997,Schertz,2006-2010,Housing,Median Gross Rent,255,median_gross_rent
+2010,8025,Schertz,2006-2010,Housing,Median Home Value,349,median_home_value
+2010,20.6,Schertz,2006-2010,Housing,Percent Owner Occupied,2.6,owner_occupied_pct
+2010,6,Schertz,2006-2010,Housing,Vacancy Rate (%),2,vacancy_rate
+2010,3.24,Schertz,2006-2010,Social Characteristics,Average Household Size,0.09,avg_household_size
+2010,13.8,Schertz,2006-2010,Social Characteristics,Percent Bachelor's Degree+,2.1,bachelor_plus_pct
+2010,1.3,Schertz,2006-2010,Social Characteristics,Percent Married Couple Families,0.7,married_couple_families_pct
+2011,9450,Cibolo,2007-2011,Demographics,Median Age,344,median_age
+2011,71.2,Cibolo,2007-2011,Demographics,Percent Hispanic/Latino,3.6,hispanic_pct
+2011,52,Cibolo,2007-2011,Demographics,Percent Over 65,2,over_65_pct
+2011,61.7,Cibolo,2007-2011,Demographics,Percent Under 18,2.5,under_18_pct
+2011,14104,Cibolo,2007-2011,Demographics,Total Population,59,total_pop
+2011,89785,Cibolo,2007-2011,Economic,Median Household Income,5967,median_hh_income
+2011,32676,Cibolo,2007-2011,Economic,Per Capita Income,2456,per_capita_income
+2011,2,Cibolo,2007-2011,Economic,Poverty Rate (%),1.4,poverty_rate
+2011,2.4,Cibolo,2007-2011,Economic,Unemployment Rate (%),1,unemployment_rate
+2011,463,Cibolo,2007-2011,Housing,Median Gross Rent,177,median_gross_rent
+2011,4053,Cibolo,2007-2011,Housing,Median Home Value,245,median_home_value
+2011,11.3,Cibolo,2007-2011,Housing,Percent Owner Occupied,3.5,owner_occupied_pct
+2011,5,Cibolo,2007-2011,Housing,Vacancy Rate (%),2.6,vacancy_rate
+2011,3.46,Cibolo,2007-2011,Social Characteristics,Average Household Size,0.16,avg_household_size
+2011,17,Cibolo,2007-2011,Social Characteristics,Percent Bachelor's Degree+,3,bachelor_plus_pct
+2011,0.9,Cibolo,2007-2011,Social Characteristics,Percent Married Couple Families,0.8,married_couple_families_pct
+2011,21911,Schertz,2007-2011,Demographics,Median Age,418,median_age
+2011,75.5,Schertz,2007-2011,Demographics,Percent Hispanic/Latino,2.3,hispanic_pct
+2011,52.6,Schertz,2007-2011,Demographics,Percent Over 65,1.3,over_65_pct
+2011,70,Schertz,2007-2011,Demographics,Percent Under 18,1.2,under_18_pct
+2011,29889,Schertz,2007-2011,Demographics,Total Population,326,total_pop
+2011,71842,Schertz,2007-2011,Economic,Median Household Income,4165,median_hh_income
+2011,30650,Schertz,2007-2011,Economic,Per Capita Income,1330,per_capita_income
+2011,4.7,Schertz,2007-2011,Economic,Poverty Rate (%),1.6,poverty_rate
+2011,4.2,Schertz,2007-2011,Economic,Unemployment Rate (%),0.9,unemployment_rate
+2011,2306,Schertz,2007-2011,Housing,Median Gross Rent,258,median_gross_rent
+2011,8541,Schertz,2007-2011,Housing,Median Home Value,346,median_home_value
+2011,21.8,Schertz,2007-2011,Housing,Percent Owner Occupied,2.2,owner_occupied_pct
+2011,6.2,Schertz,2007-2011,Housing,Vacancy Rate (%),2,vacancy_rate
+2011,3.22,Schertz,2007-2011,Social Characteristics,Average Household Size,0.1,avg_household_size
+2011,12.7,Schertz,2007-2011,Social Characteristics,Percent Bachelor's Degree+,1.7,bachelor_plus_pct
+2011,0.8,Schertz,2007-2011,Social Characteristics,Percent Married Couple Families,0.6,married_couple_families_pct
+2012,10427,Cibolo,2008-2012,Demographics,Median Age,367,median_age
+2012,66.4,Cibolo,2008-2012,Demographics,Percent Hispanic/Latino,4.2,hispanic_pct
+2012,53.3,Cibolo,2008-2012,Demographics,Percent Over 65,2.5,over_65_pct
+2012,61.1,Cibolo,2008-2012,Demographics,Percent Under 18,2.2,under_18_pct
+2012,15541,Cibolo,2008-2012,Demographics,Total Population,75,total_pop
+2012,91238,Cibolo,2008-2012,Economic,Median Household Income,4951,median_hh_income
+2012,31305,Cibolo,2008-2012,Economic,Per Capita Income,2005,per_capita_income
+2012,3,Cibolo,2008-2012,Economic,Poverty Rate (%),1.5,poverty_rate
+2012,2.5,Cibolo,2008-2012,Economic,Unemployment Rate (%),0.9,unemployment_rate
+2012,688,Cibolo,2008-2012,Housing,Median Gross Rent,198,median_gross_rent
+2012,4191,Cibolo,2008-2012,Housing,Median Home Value,278,median_home_value
+2012,14.9,Cibolo,2008-2012,Housing,Percent Owner Occupied,4,owner_occupied_pct
+2012,4.9,Cibolo,2008-2012,Housing,Vacancy Rate (%),2.4,vacancy_rate
+2012,3.54,Cibolo,2008-2012,Social Characteristics,Average Household Size,0.13,avg_household_size
+2012,16.9,Cibolo,2008-2012,Social Characteristics,Percent Bachelor's Degree+,2.9,bachelor_plus_pct
+2012,1.3,Cibolo,2008-2012,Social Characteristics,Percent Married Couple Families,0.8,married_couple_families_pct
+2012,23439,Schertz,2008-2012,Demographics,Median Age,564,median_age
+2012,74.6,Schertz,2008-2012,Demographics,Percent Hispanic/Latino,2.4,hispanic_pct
+2012,52.6,Schertz,2008-2012,Demographics,Percent Over 65,1.4,over_65_pct
+2012,69.8,Schertz,2008-2012,Demographics,Percent Under 18,1.6,under_18_pct
+2012,31934,Schertz,2008-2012,Demographics,Total Population,494,total_pop
+2012,73084,Schertz,2008-2012,Economic,Median Household Income,3849,median_hh_income
+2012,30817,Schertz,2008-2012,Economic,Per Capita Income,1427,per_capita_income
+2012,4.8,Schertz,2008-2012,Economic,Poverty Rate (%),1.6,poverty_rate
+2012,4.2,Schertz,2008-2012,Economic,Unemployment Rate (%),1,unemployment_rate
+2012,2427,Schertz,2008-2012,Housing,Median Gross Rent,297,median_gross_rent
+2012,8824,Schertz,2008-2012,Housing,Median Home Value,394,median_home_value
+2012,21.8,Schertz,2008-2012,Housing,Percent Owner Occupied,2.5,owner_occupied_pct
+2012,6.2,Schertz,2008-2012,Housing,Vacancy Rate (%),2.1,vacancy_rate
+2012,3.32,Schertz,2008-2012,Social Characteristics,Average Household Size,0.11,avg_household_size
+2012,13.2,Schertz,2008-2012,Social Characteristics,Percent Bachelor's Degree+,1.8,bachelor_plus_pct
+2012,1,Schertz,2008-2012,Social Characteristics,Percent Married Couple Families,0.5,married_couple_families_pct
+2013,13828,Cibolo,2009-2013,Demographics,Median Age,340,median_age
+2013,68.7,Cibolo,2009-2013,Demographics,Percent Hispanic/Latino,2.6,hispanic_pct
+2013,50.9,Cibolo,2009-2013,Demographics,Percent Over 65,2.1,over_65_pct
+2013,62.6,Cibolo,2009-2013,Demographics,Percent Under 18,1.6,under_18_pct
+2013,20564,Cibolo,2009-2013,Demographics,Total Population,43,total_pop
+2013,87218,Cibolo,2009-2013,Economic,Median Household Income,4951,median_hh_income
+2013,30841,Cibolo,2009-2013,Economic,Per Capita Income,2026,per_capita_income
+2013,2.2,Cibolo,2009-2013,Economic,Poverty Rate (%),1.5,poverty_rate
+2013,3.6,Cibolo,2009-2013,Economic,Unemployment Rate (%),1.2,unemployment_rate
+2013,981,Cibolo,2009-2013,Housing,Median Gross Rent,221,median_gross_rent
+2013,5485,Cibolo,2009-2013,Housing,Median Home Value,333,median_home_value
+2013,15.7,Cibolo,2009-2013,Housing,Percent Owner Occupied,3.4,owner_occupied_pct
+2013,4.7,Cibolo,2009-2013,Housing,Vacancy Rate (%),2.2,vacancy_rate
+2013,3.54,Cibolo,2009-2013,Social Characteristics,Average Household Size,0.12,avg_household_size
+2013,14.5,Cibolo,2009-2013,Social Characteristics,Percent Bachelor's Degree+,2,bachelor_plus_pct
+2013,0.9,Cibolo,2009-2013,Social Characteristics,Percent Married Couple Families,0.6,married_couple_families_pct
+2013,24536,Schertz,2009-2013,Demographics,Median Age,774,median_age
+2013,73.7,Schertz,2009-2013,Demographics,Percent Hispanic/Latino,2.7,hispanic_pct
+2013,53.1,Schertz,2009-2013,Demographics,Percent Over 65,1,over_65_pct
+2013,69.3,Schertz,2009-2013,Demographics,Percent Under 18,1.4,under_18_pct
+2013,33758,Schertz,2009-2013,Demographics,Total Population,743,total_pop
+2013,71380,Schertz,2009-2013,Economic,Median Household Income,2711,median_hh_income
+2013,29555,Schertz,2009-2013,Economic,Per Capita Income,1223,per_capita_income
+2013,6.3,Schertz,2009-2013,Economic,Poverty Rate (%),1.8,poverty_rate
+2013,4.8,Schertz,2009-2013,Economic,Unemployment Rate (%),1,unemployment_rate
+2013,2644,Schertz,2009-2013,Housing,Median Gross Rent,301,median_gross_rent
+2013,9077,Schertz,2009-2013,Housing,Median Home Value,376,median_home_value
+2013,22.8,Schertz,2009-2013,Housing,Percent Owner Occupied,2.5,owner_occupied_pct
+2013,5.6,Schertz,2009-2013,Housing,Vacancy Rate (%),2,vacancy_rate
+2013,3.3,Schertz,2009-2013,Social Characteristics,Average Household Size,0.09,avg_household_size
+2013,12.6,Schertz,2009-2013,Social Characteristics,Percent Bachelor's Degree+,1.6,bachelor_plus_pct
+2013,2.2,Schertz,2009-2013,Social Characteristics,Percent Married Couple Families,0.9,married_couple_families_pct
+2014,15380,Cibolo,2010-2014,Demographics,Median Age,392,median_age
+2014,70.7,Cibolo,2010-2014,Demographics,Percent Hispanic/Latino,2.8,hispanic_pct
+2014,52,Cibolo,2010-2014,Demographics,Percent Over 65,1.9,over_65_pct
+2014,62.3,Cibolo,2010-2014,Demographics,Percent Under 18,1.6,under_18_pct
+2014,22744,Cibolo,2010-2014,Demographics,Total Population,58,total_pop
+2014,87613,Cibolo,2010-2014,Economic,Median Household Income,5073,median_hh_income
+2014,30808,Cibolo,2010-2014,Economic,Per Capita Income,1883,per_capita_income
+2014,3,Cibolo,2010-2014,Economic,Poverty Rate (%),1.5,poverty_rate
+2014,3.2,Cibolo,2010-2014,Economic,Unemployment Rate (%),1,unemployment_rate
+2014,1291,Cibolo,2010-2014,Housing,Median Gross Rent,269,median_gross_rent
+2014,5732,Cibolo,2010-2014,Housing,Median Home Value,366,median_home_value
+2014,18.9,Cibolo,2010-2014,Housing,Percent Owner Occupied,4,owner_occupied_pct
+2014,4.1,Cibolo,2010-2014,Housing,Vacancy Rate (%),1.8,vacancy_rate
+2014,3.58,Cibolo,2010-2014,Social Characteristics,Average Household Size,0.13,avg_household_size
+2014,16.5,Cibolo,2010-2014,Social Characteristics,Percent Bachelor's Degree+,2.7,bachelor_plus_pct
+2014,0.9,Cibolo,2010-2014,Social Characteristics,Percent Married Couple Families,0.4,married_couple_families_pct
+2014,25696,Schertz,2010-2014,Demographics,Median Age,533,median_age
+2014,73.4,Schertz,2010-2014,Demographics,Percent Hispanic/Latino,2.4,hispanic_pct
+2014,52.5,Schertz,2010-2014,Demographics,Percent Over 65,1.1,over_65_pct
+2014,69.9,Schertz,2010-2014,Demographics,Percent Under 18,1.3,under_18_pct
+2014,35093,Schertz,2010-2014,Demographics,Total Population,474,total_pop
+2014,72463,Schertz,2010-2014,Economic,Median Household Income,2719,median_hh_income
+2014,30578,Schertz,2010-2014,Economic,Per Capita Income,1062,per_capita_income
+2014,6.6,Schertz,2010-2014,Economic,Poverty Rate (%),1.5,poverty_rate
+2014,4.6,Schertz,2010-2014,Economic,Unemployment Rate (%),0.9,unemployment_rate
+2014,2752,Schertz,2010-2014,Housing,Median Gross Rent,336,median_gross_rent
+2014,9497,Schertz,2010-2014,Housing,Median Home Value,356,median_home_value
+2014,22.6,Schertz,2010-2014,Housing,Percent Owner Occupied,2.5,owner_occupied_pct
+2014,5.1,Schertz,2010-2014,Housing,Vacancy Rate (%),1.4,vacancy_rate
+2014,3.26,Schertz,2010-2014,Social Characteristics,Average Household Size,0.09,avg_household_size
+2014,12.1,Schertz,2010-2014,Social Characteristics,Percent Bachelor's Degree+,1.6,bachelor_plus_pct
+2014,2.5,Schertz,2010-2014,Social Characteristics,Percent Married Couple Families,1,married_couple_families_pct
+2015,16431,Cibolo,2011-2015,Demographics,Median Age,387,median_age
+2015,70.5,Cibolo,2011-2015,Demographics,Percent Hispanic/Latino,2.5,hispanic_pct
+2015,51.8,Cibolo,2011-2015,Demographics,Percent Over 65,1.8,over_65_pct
+2015,63.2,Cibolo,2011-2015,Demographics,Percent Under 18,1.5,under_18_pct
+2015,23977,Cibolo,2011-2015,Demographics,Total Population,58,total_pop
+2015,90665,Cibolo,2011-2015,Economic,Median Household Income,6139,median_hh_income
+2015,30465,Cibolo,2011-2015,Economic,Per Capita Income,1500,per_capita_income
+2015,3.1,Cibolo,2011-2015,Economic,Poverty Rate (%),1.6,poverty_rate
+2015,3.1,Cibolo,2011-2015,Economic,Unemployment Rate (%),1.1,unemployment_rate
+2015,1347,Cibolo,2011-2015,Housing,Median Gross Rent,223,median_gross_rent
+2015,205100,Cibolo,2011-2015,Housing,Median Home Value,7633,median_home_value
+2015,83.4,Cibolo,2011-2015,Housing,Percent Owner Occupied,3.3,owner_occupied_pct
+2015,6.2,Cibolo,2011-2015,Housing,Vacancy Rate (%),2.7,vacancy_rate
+2015,3.57,Cibolo,2011-2015,Social Characteristics,Average Household Size,0.11,avg_household_size
+2015,16.4,Cibolo,2011-2015,Social Characteristics,Percent Bachelor's Degree+,2.5,bachelor_plus_pct
+2015,0.9,Cibolo,2011-2015,Social Characteristics,Percent Married Couple Families,0.6,married_couple_families_pct
+2015,26807,Schertz,2011-2015,Demographics,Median Age,565,median_age
+2015,72.2,Schertz,2011-2015,Demographics,Percent Hispanic/Latino,2.3,hispanic_pct
+2015,51.6,Schertz,2011-2015,Demographics,Percent Over 65,1.2,over_65_pct
+2015,69.4,Schertz,2011-2015,Demographics,Percent Under 18,1.3,under_18_pct
+2015,36535,Schertz,2011-2015,Demographics,Total Population,570,total_pop
+2015,74509,Schertz,2011-2015,Economic,Median Household Income,3856,median_hh_income
+2015,30980,Schertz,2011-2015,Economic,Per Capita Income,1238,per_capita_income
+2015,6.2,Schertz,2011-2015,Economic,Poverty Rate (%),1.7,poverty_rate
+2015,3.3,Schertz,2011-2015,Economic,Unemployment Rate (%),0.8,unemployment_rate
+2015,1063,Schertz,2011-2015,Housing,Median Gross Rent,71,median_gross_rent
+2015,170700,Schertz,2011-2015,Housing,Median Home Value,3007,median_home_value
+2015,75.1,Schertz,2011-2015,Housing,Percent Owner Occupied,2.8,owner_occupied_pct
+2015,4.9,Schertz,2011-2015,Housing,Vacancy Rate (%),1.5,vacancy_rate
+2015,3.36,Schertz,2011-2015,Social Characteristics,Average Household Size,0.1,avg_household_size
+2015,12.1,Schertz,2011-2015,Social Characteristics,Percent Bachelor's Degree+,1.4,bachelor_plus_pct
+2015,2.7,Schertz,2011-2015,Social Characteristics,Percent Married Couple Families,1,married_couple_families_pct
+2016,17388,Cibolo,2012-2016,Demographics,Median Age,435,median_age
+2016,69.9,Cibolo,2012-2016,Demographics,Percent Hispanic/Latino,2.6,hispanic_pct
+2016,51.4,Cibolo,2012-2016,Demographics,Percent Over 65,1.5,over_65_pct
+2016,64.1,Cibolo,2012-2016,Demographics,Percent Under 18,1.7,under_18_pct
+2016,25256,Cibolo,2012-2016,Demographics,Total Population,60,total_pop
+2016,91827,Cibolo,2012-2016,Economic,Median Household Income,3861,median_hh_income
+2016,30753,Cibolo,2012-2016,Economic,Per Capita Income,1413,per_capita_income
+2016,3.5,Cibolo,2012-2016,Economic,Poverty Rate (%),1.5,poverty_rate
+2016,3.8,Cibolo,2012-2016,Economic,Unemployment Rate (%),1.2,unemployment_rate
+2016,1512,Cibolo,2012-2016,Housing,Median Gross Rent,143,median_gross_rent
+2016,206900,Cibolo,2012-2016,Housing,Median Home Value,6189,median_home_value
+2016,80.2,Cibolo,2012-2016,Housing,Percent Owner Occupied,3.4,owner_occupied_pct
+2016,4.8,Cibolo,2012-2016,Housing,Vacancy Rate (%),2.1,vacancy_rate
+2016,3.61,Cibolo,2012-2016,Social Characteristics,Average Household Size,0.13,avg_household_size
+2016,15.2,Cibolo,2012-2016,Social Characteristics,Percent Bachelor's Degree+,2.2,bachelor_plus_pct
+2016,0.8,Cibolo,2012-2016,Social Characteristics,Percent Married Couple Families,0.6,married_couple_families_pct
+2016,27566,Schertz,2012-2016,Demographics,Median Age,743,median_age
+2016,71.4,Schertz,2012-2016,Demographics,Percent Hispanic/Latino,2.2,hispanic_pct
+2016,52.7,Schertz,2012-2016,Demographics,Percent Over 65,1,over_65_pct
+2016,69.7,Schertz,2012-2016,Demographics,Percent Under 18,1.4,under_18_pct
+2016,37597,Schertz,2012-2016,Demographics,Total Population,749,total_pop
+2016,77139,Schertz,2012-2016,Economic,Median Household Income,3419,median_hh_income
+2016,32090,Schertz,2012-2016,Economic,Per Capita Income,1425,per_capita_income
+2016,6.1,Schertz,2012-2016,Economic,Poverty Rate (%),1.9,poverty_rate
+2016,2.8,Schertz,2012-2016,Economic,Unemployment Rate (%),0.5,unemployment_rate
+2016,1128,Schertz,2012-2016,Housing,Median Gross Rent,53,median_gross_rent
+2016,179000,Schertz,2012-2016,Housing,Median Home Value,6210,median_home_value
+2016,74.4,Schertz,2012-2016,Housing,Percent Owner Occupied,2.6,owner_occupied_pct
+2016,5.1,Schertz,2012-2016,Housing,Vacancy Rate (%),1.5,vacancy_rate
+2016,3.34,Schertz,2012-2016,Social Characteristics,Average Household Size,0.09,avg_household_size
+2016,12.7,Schertz,2012-2016,Social Characteristics,Percent Bachelor's Degree+,1.4,bachelor_plus_pct
+2016,3.2,Schertz,2012-2016,Social Characteristics,Percent Married Couple Families,1.2,married_couple_families_pct
+2017,33.7,Cibolo,2013-2017,Demographics,Median Age,1.4,median_age
+2017,30.7,Cibolo,2013-2017,Demographics,Percent Hispanic/Latino,2.7,hispanic_pct
+2017,7.1,Cibolo,2013-2017,Demographics,Percent Over 65,0.9,over_65_pct
+2017,31.4,Cibolo,2013-2017,Demographics,Percent Under 18,1.5,under_18_pct
+2017,26602,Cibolo,2013-2017,Demographics,Total Population,64,total_pop
+2017,92773,Cibolo,2013-2017,Economic,Median Household Income,6161,median_hh_income
+2017,31705,Cibolo,2013-2017,Economic,Per Capita Income,1467,per_capita_income
+2017,4.1,Cibolo,2013-2017,Economic,Poverty Rate (%),1.5,poverty_rate
+2017,3.2,Cibolo,2013-2017,Economic,Unemployment Rate (%),1,unemployment_rate
+2017,1595,Cibolo,2013-2017,Housing,Median Gross Rent,125,median_gross_rent
+2017,214500,Cibolo,2013-2017,Housing,Median Home Value,6241,median_home_value
+2017,80,Cibolo,2013-2017,Housing,Percent Owner Occupied,3.3,owner_occupied_pct
+2017,3.6,Cibolo,2013-2017,Housing,Vacancy Rate (%),2.2,vacancy_rate
+2017,3.6,Cibolo,2013-2017,Social Characteristics,Average Household Size,0.11,avg_household_size
+2017,15.8,Cibolo,2013-2017,Social Characteristics,Percent Bachelor's Degree+,1.9,bachelor_plus_pct
+2017,1.3,Cibolo,2013-2017,Social Characteristics,Percent Married Couple Families,0.8,married_couple_families_pct
+2017,37.6,Schertz,2013-2017,Demographics,Median Age,1.6,median_age
+2017,29.4,Schertz,2013-2017,Demographics,Percent Hispanic/Latino,1.9,hispanic_pct
+2017,12.6,Schertz,2013-2017,Demographics,Percent Over 65,0.9,over_65_pct
+2017,26.4,Schertz,2013-2017,Demographics,Percent Under 18,1.2,under_18_pct
+2017,38199,Schertz,2013-2017,Demographics,Total Population,778,total_pop
+2017,80112,Schertz,2013-2017,Economic,Median Household Income,3092,median_hh_income
+2017,33378,Schertz,2013-2017,Economic,Per Capita Income,1447,per_capita_income
+2017,5.7,Schertz,2013-2017,Economic,Poverty Rate (%),1.7,poverty_rate
+2017,2.5,Schertz,2013-2017,Economic,Unemployment Rate (%),0.5,unemployment_rate
+2017,1188,Schertz,2013-2017,Housing,Median Gross Rent,59,median_gross_rent
+2017,186600,Schertz,2013-2017,Housing,Median Home Value,5747,median_home_value
+2017,74.4,Schertz,2013-2017,Housing,Percent Owner Occupied,2.2,owner_occupied_pct
+2017,4.5,Schertz,2013-2017,Housing,Vacancy Rate (%),1.5,vacancy_rate
+2017,3.28,Schertz,2013-2017,Social Characteristics,Average Household Size,0.1,avg_household_size
+2017,13,Schertz,2013-2017,Social Characteristics,Percent Bachelor's Degree+,1.3,bachelor_plus_pct
+2017,3.1,Schertz,2013-2017,Social Characteristics,Percent Married Couple Families,1.2,married_couple_families_pct
+2018,33.9,Cibolo,2014-2018,Demographics,Median Age,1.5,median_age
+2018,30.1,Cibolo,2014-2018,Demographics,Percent Hispanic/Latino,2.8,hispanic_pct
+2018,7.5,Cibolo,2014-2018,Demographics,Percent Over 65,1,over_65_pct
+2018,30,Cibolo,2014-2018,Demographics,Percent Under 18,1.6,under_18_pct
+2018,27963,Cibolo,2014-2018,Demographics,Total Population,34,total_pop
+2018,97277,Cibolo,2014-2018,Economic,Median Household Income,5362,median_hh_income
+2018,33431,Cibolo,2014-2018,Economic,Per Capita Income,1620,per_capita_income
+2018,4.6,Cibolo,2014-2018,Economic,Poverty Rate (%),1.8,poverty_rate
+2018,2.4,Cibolo,2014-2018,Economic,Unemployment Rate (%),0.8,unemployment_rate
+2018,1701,Cibolo,2014-2018,Housing,Median Gross Rent,77,median_gross_rent
+2018,222800,Cibolo,2014-2018,Housing,Median Home Value,5747,median_home_value
+2018,81.8,Cibolo,2014-2018,Housing,Percent Owner Occupied,3,owner_occupied_pct
+2018,2.9,Cibolo,2014-2018,Housing,Vacancy Rate (%),1.8,vacancy_rate
+2018,3.54,Cibolo,2014-2018,Social Characteristics,Average Household Size,0.11,avg_household_size
+2018,16.1,Cibolo,2014-2018,Social Characteristics,Percent Bachelor's Degree+,2.1,bachelor_plus_pct
+2018,1.5,Cibolo,2014-2018,Social Characteristics,Percent Married Couple Families,0.8,married_couple_families_pct
+2018,38,Schertz,2014-2018,Demographics,Median Age,1.1,median_age
+2018,31.5,Schertz,2014-2018,Demographics,Percent Hispanic/Latino,2.1,hispanic_pct
+2018,12.9,Schertz,2014-2018,Demographics,Percent Over 65,1,over_65_pct
+2018,26.2,Schertz,2014-2018,Demographics,Percent Under 18,1.1,under_18_pct
+2018,38991,Schertz,2014-2018,Demographics,Total Population,646,total_pop
+2018,82647,Schertz,2014-2018,Economic,Median Household Income,3228,median_hh_income
+2018,35121,Schertz,2014-2018,Economic,Per Capita Income,1274,per_capita_income
+2018,5,Schertz,2014-2018,Economic,Poverty Rate (%),1.5,poverty_rate
+2018,2.6,Schertz,2014-2018,Economic,Unemployment Rate (%),0.6,unemployment_rate
+2018,1241,Schertz,2014-2018,Housing,Median Gross Rent,85,median_gross_rent
+2018,196500,Schertz,2014-2018,Housing,Median Home Value,5712,median_home_value
+2018,75.7,Schertz,2014-2018,Housing,Percent Owner Occupied,2.7,owner_occupied_pct
+2018,4.6,Schertz,2014-2018,Housing,Vacancy Rate (%),1.7,vacancy_rate
+2018,3.3,Schertz,2014-2018,Social Characteristics,Average Household Size,0.09,avg_household_size
+2018,14.1,Schertz,2014-2018,Social Characteristics,Percent Bachelor's Degree+,1.4,bachelor_plus_pct
+2018,2.5,Schertz,2014-2018,Social Characteristics,Percent Married Couple Families,0.9,married_couple_families_pct
+2019,34.4,Cibolo,2015-2019,Demographics,Median Age,1.6,median_age
+2019,30,Cibolo,2015-2019,Demographics,Percent Hispanic/Latino,2.9,hispanic_pct
+2019,8,Cibolo,2015-2019,Demographics,Percent Over 65,0.9,over_65_pct
+2019,28.8,Cibolo,2015-2019,Demographics,Percent Under 18,1.5,under_18_pct
+2019,28920,Cibolo,2015-2019,Demographics,Total Population,1445,total_pop
+2019,104601,Cibolo,2015-2019,Economic,Median Household Income,6491,median_hh_income
+2019,35703,Cibolo,2015-2019,Economic,Per Capita Income,1727,per_capita_income
+2019,3.5,Cibolo,2015-2019,Economic,Poverty Rate (%),1.5,poverty_rate
+2019,2.6,Cibolo,2015-2019,Economic,Unemployment Rate (%),0.7,unemployment_rate
+2019,1723,Cibolo,2015-2019,Housing,Median Gross Rent,65,median_gross_rent
+2019,230800,Cibolo,2015-2019,Housing,Median Home Value,6289,median_home_value
+2019,82.3,Cibolo,2015-2019,Housing,Percent Owner Occupied,3.3,owner_occupied_pct
+2019,5,Cibolo,2015-2019,Housing,Vacancy Rate (%),2.2,vacancy_rate
+2019,3.38,Cibolo,2015-2019,Social Characteristics,Average Household Size,0.12,avg_household_size
+2019,24.1,Cibolo,2015-2019,Social Characteristics,Percent Bachelor's Degree+,2.5,bachelor_plus_pct
+2019,0.8,Cibolo,2015-2019,Social Characteristics,Percent Married Couple Families,0.6,married_couple_families_pct
+2019,38,Schertz,2015-2019,Demographics,Median Age,1.1,median_age
+2019,31.4,Schertz,2015-2019,Demographics,Percent Hispanic/Latino,2.4,hispanic_pct
+2019,13.3,Schertz,2015-2019,Demographics,Percent Over 65,1.1,over_65_pct
+2019,25.8,Schertz,2015-2019,Demographics,Percent Under 18,1.3,under_18_pct
+2019,41199,Schertz,2015-2019,Demographics,Total Population,1194,total_pop
+2019,87059,Schertz,2015-2019,Economic,Median Household Income,3287,median_hh_income
+2019,35778,Schertz,2015-2019,Economic,Per Capita Income,1303,per_capita_income
+2019,4.6,Schertz,2015-2019,Economic,Poverty Rate (%),1.5,poverty_rate
+2019,2.6,Schertz,2015-2019,Economic,Unemployment Rate (%),0.6,unemployment_rate
+2019,1322,Schertz,2015-2019,Housing,Median Gross Rent,65,median_gross_rent
+2019,211700,Schertz,2015-2019,Housing,Median Home Value,5560,median_home_value
+2019,74.5,Schertz,2015-2019,Housing,Percent Owner Occupied,2.6,owner_occupied_pct
+2019,3.9,Schertz,2015-2019,Housing,Vacancy Rate (%),1.2,vacancy_rate
+2019,2.89,Schertz,2015-2019,Social Characteristics,Average Household Size,0.08,avg_household_size
+2019,22.6,Schertz,2015-2019,Social Characteristics,Percent Bachelor's Degree+,2,bachelor_plus_pct
+2019,1.7,Schertz,2015-2019,Social Characteristics,Percent Married Couple Families,0.8,married_couple_families_pct
+2020,34.2,Cibolo,2016-2020,Demographics,Median Age,1.3,median_age
+2020,27.3,Cibolo,2016-2020,Demographics,Percent Hispanic/Latino,2.6,hispanic_pct
+2020,9.5,Cibolo,2016-2020,Demographics,Percent Over 65,1.5,over_65_pct
+2020,30,Cibolo,2016-2020,Demographics,Percent Under 18,1.6,under_18_pct
+2020,30333,Cibolo,2016-2020,Demographics,Total Population,63,total_pop
+2020,102109,Cibolo,2016-2020,Economic,Median Household Income,7090,median_hh_income
+2020,34931,Cibolo,2016-2020,Economic,Per Capita Income,1776,per_capita_income
+2020,3.1,Cibolo,2016-2020,Economic,Poverty Rate (%),1.4,poverty_rate
+2020,3.4,Cibolo,2016-2020,Economic,Unemployment Rate (%),1.2,unemployment_rate
+2020,1711,Cibolo,2016-2020,Housing,Median Gross Rent,72,median_gross_rent
+2020,237300,Cibolo,2016-2020,Housing,Median Home Value,5589,median_home_value
+2020,85.9,Cibolo,2016-2020,Housing,Percent Owner Occupied,2.5,owner_occupied_pct
+2020,6.2,Cibolo,2016-2020,Housing,Vacancy Rate (%),2.6,vacancy_rate
+2020,3.33,Cibolo,2016-2020,Social Characteristics,Average Household Size,0.12,avg_household_size
+2020,24,Cibolo,2016-2020,Social Characteristics,Percent Bachelor's Degree+,2.5,bachelor_plus_pct
+2020,NA,Cibolo,2016-2020,Social Characteristics,Percent Married Couple Families,NA,married_couple_families_pct
+2020,37.9,Schertz,2016-2020,Demographics,Median Age,1.9,median_age
+2020,31,Schertz,2016-2020,Demographics,Percent Hispanic/Latino,2.6,hispanic_pct
+2020,13.4,Schertz,2016-2020,Demographics,Percent Over 65,1.4,over_65_pct
+2020,23.8,Schertz,2016-2020,Demographics,Percent Under 18,2,under_18_pct
+2020,42433,Schertz,2016-2020,Demographics,Total Population,793,total_pop
+2020,84527,Schertz,2016-2020,Economic,Median Household Income,4632,median_hh_income
+2020,36786,Schertz,2016-2020,Economic,Per Capita Income,1877,per_capita_income
+2020,3.4,Schertz,2016-2020,Economic,Poverty Rate (%),1.2,poverty_rate
+2020,2.7,Schertz,2016-2020,Economic,Unemployment Rate (%),0.7,unemployment_rate
+2020,1374,Schertz,2016-2020,Housing,Median Gross Rent,77,median_gross_rent
+2020,223400,Schertz,2016-2020,Housing,Median Home Value,5870,median_home_value
+2020,77.2,Schertz,2016-2020,Housing,Percent Owner Occupied,2.8,owner_occupied_pct
+2020,3.8,Schertz,2016-2020,Housing,Vacancy Rate (%),1.5,vacancy_rate
+2020,2.84,Schertz,2016-2020,Social Characteristics,Average Household Size,0.1,avg_household_size
+2020,23.2,Schertz,2016-2020,Social Characteristics,Percent Bachelor's Degree+,2.4,bachelor_plus_pct
+2020,NA,Schertz,2016-2020,Social Characteristics,Percent Married Couple Families,NA,married_couple_families_pct
+2021,34.4,Cibolo,2017-2021,Demographics,Median Age,1.6,median_age
+2021,26.9,Cibolo,2017-2021,Demographics,Percent Hispanic/Latino,3.1,hispanic_pct
+2021,8.9,Cibolo,2017-2021,Demographics,Percent Over 65,1.6,over_65_pct
+2021,30,Cibolo,2017-2021,Demographics,Percent Under 18,2.1,under_18_pct
+2021,31489,Cibolo,2017-2021,Demographics,Total Population,46,total_pop
+2021,106654,Cibolo,2017-2021,Economic,Median Household Income,8256,median_hh_income
+2021,35917,Cibolo,2017-2021,Economic,Per Capita Income,1848,per_capita_income
+2021,4.3,Cibolo,2017-2021,Economic,Poverty Rate (%),1.6,poverty_rate
+2021,3.1,Cibolo,2017-2021,Economic,Unemployment Rate (%),1.1,unemployment_rate
+2021,1795,Cibolo,2017-2021,Housing,Median Gross Rent,66,median_gross_rent
+2021,248200,Cibolo,2017-2021,Housing,Median Home Value,8338,median_home_value
+2021,85.4,Cibolo,2017-2021,Housing,Percent Owner Occupied,2.5,owner_occupied_pct
+2021,6.1,Cibolo,2017-2021,Housing,Vacancy Rate (%),2.3,vacancy_rate
+2021,3.33,Cibolo,2017-2021,Social Characteristics,Average Household Size,0.15,avg_household_size
+2021,23,Cibolo,2017-2021,Social Characteristics,Percent Bachelor's Degree+,2.4,bachelor_plus_pct
+2021,0.7,Cibolo,2017-2021,Social Characteristics,Percent Married Couple Families,0.5,married_couple_families_pct
+2021,39,Schertz,2017-2021,Demographics,Median Age,2.3,median_age
+2021,32.9,Schertz,2017-2021,Demographics,Percent Hispanic/Latino,2.8,hispanic_pct
+2021,14.1,Schertz,2017-2021,Demographics,Percent Over 65,1.3,over_65_pct
+2021,22.8,Schertz,2017-2021,Demographics,Percent Under 18,1.8,under_18_pct
+2021,41607,Schertz,2017-2021,Demographics,Total Population,745,total_pop
+2021,87492,Schertz,2017-2021,Economic,Median Household Income,4947,median_hh_income
+2021,39021,Schertz,2017-2021,Economic,Per Capita Income,1786,per_capita_income
+2021,4.1,Schertz,2017-2021,Economic,Poverty Rate (%),1.4,poverty_rate
+2021,3.5,Schertz,2017-2021,Economic,Unemployment Rate (%),0.8,unemployment_rate
+2021,1359,Schertz,2017-2021,Housing,Median Gross Rent,78,median_gross_rent
+2021,241100,Schertz,2017-2021,Housing,Median Home Value,7028,median_home_value
+2021,78.7,Schertz,2017-2021,Housing,Percent Owner Occupied,2.9,owner_occupied_pct
+2021,3.9,Schertz,2017-2021,Housing,Vacancy Rate (%),1.7,vacancy_rate
+2021,2.78,Schertz,2017-2021,Social Characteristics,Average Household Size,0.1,avg_household_size
+2021,24.4,Schertz,2017-2021,Social Characteristics,Percent Bachelor's Degree+,2.3,bachelor_plus_pct
+2021,1.1,Schertz,2017-2021,Social Characteristics,Percent Married Couple Families,0.6,married_couple_families_pct
+2022,36.1,Cibolo,2018-2022,Demographics,Median Age,1.4,median_age
+2022,13.6,Cibolo,2018-2022,Demographics,Percent Hispanic/Latino,2.4,hispanic_pct
+2022,10,Cibolo,2018-2022,Demographics,Percent Over 65,1.6,over_65_pct
+2022,27.9,Cibolo,2018-2022,Demographics,Percent Under 18,2.1,under_18_pct
+2022,32640,Cibolo,2018-2022,Demographics,Total Population,38,total_pop
+2022,116510,Cibolo,2018-2022,Economic,Median Household Income,6009,median_hh_income
+2022,39420,Cibolo,2018-2022,Economic,Per Capita Income,1960,per_capita_income
+2022,2.1,Cibolo,2018-2022,Economic,Poverty Rate (%),1.1,poverty_rate
+2022,3.5,Cibolo,2018-2022,Economic,Unemployment Rate (%),1.2,unemployment_rate
+2022,1872,Cibolo,2018-2022,Housing,Median Gross Rent,101,median_gross_rent
+2022,291500,Cibolo,2018-2022,Housing,Median Home Value,6862,median_home_value
+2022,84.4,Cibolo,2018-2022,Housing,Percent Owner Occupied,3.4,owner_occupied_pct
+2022,6.2,Cibolo,2018-2022,Housing,Vacancy Rate (%),2.3,vacancy_rate
+2022,3.24,Cibolo,2018-2022,Social Characteristics,Average Household Size,0.15,avg_household_size
+2022,23.6,Cibolo,2018-2022,Social Characteristics,Percent Bachelor's Degree+,2.9,bachelor_plus_pct
+2022,0.6,Cibolo,2018-2022,Social Characteristics,Percent Married Couple Families,0.6,married_couple_families_pct
+2022,38.2,Schertz,2018-2022,Demographics,Median Age,2.2,median_age
+2022,19.2,Schertz,2018-2022,Demographics,Percent Hispanic/Latino,2.9,hispanic_pct
+2022,14,Schertz,2018-2022,Demographics,Percent Over 65,1.4,over_65_pct
+2022,24.3,Schertz,2018-2022,Demographics,Percent Under 18,1.9,under_18_pct
+2022,42545,Schertz,2018-2022,Demographics,Total Population,763,total_pop
+2022,94173,Schertz,2018-2022,Economic,Median Household Income,6619,median_hh_income
+2022,40324,Schertz,2018-2022,Economic,Per Capita Income,1979,per_capita_income
+2022,4.9,Schertz,2018-2022,Economic,Poverty Rate (%),1.5,poverty_rate
+2022,3.9,Schertz,2018-2022,Economic,Unemployment Rate (%),1,unemployment_rate
+2022,1513,Schertz,2018-2022,Housing,Median Gross Rent,164,median_gross_rent
+2022,272600,Schertz,2018-2022,Housing,Median Home Value,6630,median_home_value
+2022,78.2,Schertz,2018-2022,Housing,Percent Owner Occupied,2.4,owner_occupied_pct
+2022,4,Schertz,2018-2022,Housing,Vacancy Rate (%),1.5,vacancy_rate
+2022,2.78,Schertz,2018-2022,Social Characteristics,Average Household Size,0.1,avg_household_size
+2022,24.4,Schertz,2018-2022,Social Characteristics,Percent Bachelor's Degree+,2.2,bachelor_plus_pct
+2022,1.2,Schertz,2018-2022,Social Characteristics,Percent Married Couple Families,0.8,married_couple_families_pct

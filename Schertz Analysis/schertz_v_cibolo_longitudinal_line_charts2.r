@@ -1,0 +1,529 @@
+# Flexible Longitudinal Line Chart Analysis: Cibolo vs Schertz
+# User-Defined Years with Maximum Data Range
+
+# Load required libraries
+library(tidycensus)
+library(tidyverse)
+library(writexl)
+library(scales)
+library(ggplot2)
+
+#==============================================================================
+# STEP 1: SET YOUR ANALYSIS PARAMETERS (USER CUSTOMIZATION)
+#==============================================================================
+
+# SET YOUR YEARS HERE - Customize based on how far back you want to go
+ANALYSIS_YEARS <- 2009:2022  # Maximum ACS 5-year range (14 years!)
+# Alternative options:
+# ANALYSIS_YEARS <- 2015:2022  # Recent 8 years (faster processing)
+# ANALYSIS_YEARS <- c(2009, 2012, 2015, 2018, 2022)  # Every 3 years
+# ANALYSIS_YEARS <- 2010:2022  # Post-recession era
+# ANALYSIS_YEARS <- 2013:2019  # Pre-pandemic era
+
+# Set your cities
+CITIES <- c("Cibolo city, Texas", "Schertz city, Texas")
+
+# Choose your survey type
+SURVEY_TYPE <- "acs5"  # Use "acs1" if cities were >65k (they're not)
+
+#==============================================================================
+# DATA AVAILABILITY REFERENCE
+#==============================================================================
+
+cat("=== LONGITUDINAL LINE CHART ANALYSIS ===\n")
+cat("ACS 5-Year Estimates: 2009-2022 (14 years maximum)\n")
+cat("Decennial Census: 1990, 2000, 2010, 2020 (limited variables)\n")
+cat("Population Estimates: 2000-2022 (population only)\n\n")
+
+cat("SELECTED ANALYSIS YEARS:", paste(ANALYSIS_YEARS, collapse = ", "), "\n")
+cat("TOTAL YEARS OF DATA:", length(ANALYSIS_YEARS), "\n")
+cat("ANALYSIS SPAN:", max(ANALYSIS_YEARS) - min(ANALYSIS_YEARS) + 1, "years\n\n")
+
+#==============================================================================
+# STEP 2: DEFINE VARIABLES FOR LINE CHART ANALYSIS
+#==============================================================================
+
+# Variables optimized for meaningful trend visualization
+longitudinal_vars <- c(
+  # Population and Demographics
+  total_pop = "DP05_0001",
+  median_age = "DP05_0018",
+  under_18_pct = "DP05_0019P",
+  over_65_pct = "DP05_0024P",
+  hispanic_pct = "DP05_0071P",
+
+  # Education and Social
+  bachelor_plus_pct = "DP02_0065P",
+  married_couple_families_pct = "DP02_0007P",
+  avg_household_size = "DP02_0016",
+
+  # Economic Indicators
+  median_hh_income = "DP03_0062",
+  per_capita_income = "DP03_0088",
+  unemployment_rate = "DP03_0005P",
+  poverty_rate = "DP03_0119P",
+
+  # Housing Market
+  median_home_value = "DP04_0089",
+  median_gross_rent = "DP04_0134",
+  owner_occupied_pct = "DP04_0046P",
+  vacancy_rate = "DP04_0003P"
+)
+
+#==============================================================================
+# STEP 3: DATA AVAILABILITY AND COLLECTION FUNCTIONS
+#==============================================================================
+
+# Function to check data availability
+check_chart_data_availability <- function(years, cities, variables) {
+  cat("=== CHECKING DATA AVAILABILITY FOR LINE CHARTS ===\n")
+  cat("Testing years:", paste(range(years), collapse = " to "), "\n")
+  cat("Cities:", paste(cities, collapse = ", "), "\n\n")
+
+  # Test first, middle, and last year
+  test_years <- unique(c(min(years), median(years), max(years)))
+
+  for(yr in test_years) {
+    cat("Testing year", yr, "... ")
+
+    tryCatch({
+      test_data <- get_acs(
+        geography = "place",
+        variables = variables[1:3], # Test with just a few variables
+        state = "TX",
+        year = yr,
+        survey = SURVEY_TYPE
+      ) %>%
+        filter(NAME %in% cities)
+
+      if(nrow(test_data) > 0) {
+        cat("✓ Available (", nrow(test_data), "records)\n")
+      } else {
+        cat("✗ No data for these cities\n")
+      }
+    }, error = function(e) {
+      cat("✗ Error:", e$message, "\n")
+    })
+  }
+  cat("\n")
+}
+
+# Enhanced longitudinal data function
+get_longitudinal_data <- function(years = ANALYSIS_YEARS,
+                                 cities = CITIES,
+                                 variables = longitudinal_vars,
+                                 survey = SURVEY_TYPE) {
+
+  cat("=== STARTING LONGITUDINAL DATA COLLECTION ===\n")
+  cat("Years:", paste(years, collapse = ", "), "\n")
+  cat("Variables:", length(variables), "\n")
+  cat("Survey:", survey, "\n\n")
+
+  # Get data for all years and cities
+  longitudinal_data <- map_dfr(years, function(yr) {
+
+    cat("Fetching data for year:", yr, "...")
+
+    tryCatch({
+      yearly_data <- get_acs(
+        geography = "place",
+        variables = variables,
+        state = "TX",
+        year = yr,
+        survey = survey
+      ) %>%
+        filter(NAME %in% cities) %>%
+        mutate(
+          year = yr,
+          city = case_when(
+            str_detect(NAME, "Cibolo") ~ "Cibolo",
+            str_detect(NAME, "Schertz") ~ "Schertz",
+            TRUE ~ NAME
+          ),
+          # Create period labels for ACS 5-year estimates
+          period = if(survey == "acs5") paste0(yr-4, "-", yr) else as.character(yr)
+        ) %>%
+        select(city, year, period, variable, estimate, moe)
+
+      cat(" ✓ Success (", nrow(yearly_data), " records)\n")
+      return(yearly_data)
+
+    }, error = function(e) {
+      cat(" ✗ Error:", e$message, "\n")
+      return(tibble())
+    })
+  })
+
+  if(nrow(longitudinal_data) == 0) {
+    stop("No data retrieved. Check your years, cities, and variables.")
+  }
+
+  # Add variable labels and categories
+  longitudinal_data <- longitudinal_data %>%
+    mutate(
+      variable_label = case_when(
+        variable == "total_pop" ~ "Total Population",
+        variable == "median_age" ~ "Median Age",
+        variable == "under_18_pct" ~ "Percent Under 18",
+        variable == "over_65_pct" ~ "Percent Over 65",
+        variable == "hispanic_pct" ~ "Percent Hispanic/Latino",
+        variable == "bachelor_plus_pct" ~ "Percent Bachelor's Degree+",
+        variable == "married_couple_families_pct" ~ "Percent Married Couple Families",
+        variable == "avg_household_size" ~ "Average Household Size",
+        variable == "median_hh_income" ~ "Median Household Income",
+        variable == "per_capita_income" ~ "Per Capita Income",
+        variable == "unemployment_rate" ~ "Unemployment Rate (%)",
+        variable == "poverty_rate" ~ "Poverty Rate (%)",
+        variable == "median_home_value" ~ "Median Home Value",
+        variable == "median_gross_rent" ~ "Median Gross Rent",
+        variable == "owner_occupied_pct" ~ "Percent Owner Occupied",
+        variable == "vacancy_rate" ~ "Vacancy Rate (%)",
+        TRUE ~ variable
+      ),
+      # Add categories for grouping
+      category = case_when(
+        variable %in% c("total_pop", "median_age", "under_18_pct", "over_65_pct", "hispanic_pct") ~ "Demographics",
+        variable %in% c("bachelor_plus_pct", "married_couple_families_pct", "avg_household_size") ~ "Social Characteristics",
+        variable %in% c("median_hh_income", "per_capita_income", "unemployment_rate", "poverty_rate") ~ "Economic",
+        variable %in% c("median_home_value", "median_gross_rent", "owner_occupied_pct", "vacancy_rate") ~ "Housing",
+        TRUE ~ "Other"
+      )
+    )
+
+  cat("\nData collection complete!\n")
+  cat("Total records:", nrow(longitudinal_data), "\n")
+  cat("Years with data:", paste(sort(unique(longitudinal_data$year)), collapse = ", "), "\n")
+  cat("Variables collected:", length(unique(longitudinal_data$variable)), "\n\n")
+
+  return(longitudinal_data)
+}
+
+#==============================================================================
+# STEP 4: ENHANCED LINE CHART FUNCTIONS
+#==============================================================================
+
+# Enhanced function to create line charts for any variable
+create_line_chart <- function(data, var_name, title_suffix = "", years_in_title = TRUE) {
+
+  chart_data <- data %>%
+    filter(variable_label == var_name)
+
+  if(nrow(chart_data) == 0) {
+    cat("Variable '", var_name, "' not found.\n")
+    cat("Available variables:\n")
+    print(unique(data$variable_label))
+    return(NULL)
+  }
+
+  # Determine formatting based on variable type
+  is_dollar <- str_detect(var_name, "Income|Value|Rent")
+  is_percent <- str_detect(var_name, "Percent|Rate|%")
+
+  # Create title with year range if requested
+  year_range <- if(years_in_title) {
+    paste0(" (", min(chart_data$year), "-", max(chart_data$year), ")")
+  } else {
+    ""
+  }
+
+  p <- ggplot(chart_data, aes(x = year, y = estimate, color = city, group = city)) +
+    geom_line(size = 1.2) +
+    geom_point(size = 3) +
+    labs(
+      title = paste0(var_name, " Comparison: Cibolo vs Schertz", year_range, title_suffix),
+      subtitle = paste0("ACS 5-Year Estimates, ", length(unique(chart_data$year)), " years of data"),
+      x = "Year",
+      y = var_name,
+      color = "City",
+      caption = "Source: US Census Bureau, American Community Survey"
+    ) +
+    theme_minimal() +
+    theme(
+      plot.title = element_text(size = 14, face = "bold"),
+      plot.subtitle = element_text(size = 12),
+      legend.position = "bottom",
+      panel.grid.minor = element_blank(),
+      axis.text.x = element_text(angle = 45, hjust = 1)
+    ) +
+    scale_color_manual(values = c("Cibolo" = "#1f77b4", "Schertz" = "#ff7f0e")) +
+    scale_x_continuous(breaks = unique(chart_data$year))
+
+  # Add appropriate y-axis formatting
+  if(is_dollar) {
+    p <- p + scale_y_continuous(labels = dollar_format())
+  } else if(is_percent) {
+    p <- p + scale_y_continuous(labels = function(x) paste0(x, "%"))
+  } else if(max(chart_data$estimate, na.rm = TRUE) > 1000) {
+    p <- p + scale_y_continuous(labels = comma_format())
+  }
+
+  return(p)
+}
+
+# Function to create and save multiple charts at once
+create_chart_dashboard <- function(data, variables_to_plot, save_plots = TRUE) {
+
+  cat("=== CREATING CHART DASHBOARD ===\n")
+
+  charts <- map(variables_to_plot, function(var) {
+    cat("Creating chart for:", var, "\n")
+    chart <- create_line_chart(data, var)
+
+    if(save_plots && !is.null(chart)) {
+      year_range <- paste0(min(ANALYSIS_YEARS), "_", max(ANALYSIS_YEARS))
+      filename <- paste0(str_replace_all(str_to_lower(var), "[^a-z0-9]", "_"),
+                        "_", year_range, ".png")
+      ggsave(filename, chart, width = 12, height = 8, dpi = 300)
+      cat("  → Saved as:", filename, "\n")
+    }
+
+    return(chart)
+  })
+
+  names(charts) <- variables_to_plot
+  cat("Dashboard complete! Created", length(charts), "charts.\n\n")
+
+  return(charts)
+}
+
+# Function to analyze trends for any variable
+analyze_variable_trends <- function(data, var_name) {
+
+  trend_data <- data %>%
+    filter(variable_label == var_name) %>%
+    group_by(city) %>%
+    arrange(year) %>%
+    summarise(
+      years_available = n(),
+      first_year = min(year),
+      last_year = max(year),
+      first_value = first(estimate),
+      last_value = last(estimate),
+      total_change = last_value - first_value,
+      total_growth_pct = round(((last_value / first_value) - 1) * 100, 1),
+      cagr = round((((last_value / first_value)^(1/(last_year - first_year))) - 1) * 100, 2),
+      .groups = "drop"
+    )
+
+  # Year-by-year comparison
+  yearly_comparison <- data %>%
+    filter(variable_label == var_name) %>%
+    select(city, year, estimate) %>%
+    pivot_wider(names_from = city, values_from = estimate) %>%
+    mutate(
+      difference = Schertz - Cibolo,
+      leader = ifelse(Schertz > Cibolo, "Schertz", "Cibolo"),
+      gap_pct = round(abs(difference) / pmin(Schertz, Cibolo) * 100, 1)
+    )
+
+  cat("=== TREND ANALYSIS:", var_name, "===\n")
+  cat("Growth Summary:\n")
+  print(trend_data)
+  cat("\nYear-by-Year Comparison:\n")
+  print(yearly_comparison)
+  cat("\n")
+
+  return(list(growth = trend_data, yearly = yearly_comparison))
+}
+
+#==============================================================================
+# STEP 5: RUN THE ANALYSIS
+#==============================================================================
+
+# Check data availability
+check_chart_data_availability(ANALYSIS_YEARS, CITIES, longitudinal_vars)
+
+# Get the longitudinal data
+longitudinal_data <- get_longitudinal_data()
+
+# Create separate datasets for each city
+cibolo_data <- longitudinal_data %>%
+  filter(city == "Cibolo") %>%
+  arrange(variable, year)
+
+schertz_data <- longitudinal_data %>%
+  filter(city == "Schertz") %>%
+  arrange(variable, year)
+
+# Create wide format for Excel analysis
+longitudinal_wide <- longitudinal_data %>%
+  select(city, year, variable_label, estimate) %>%
+  pivot_wider(
+    names_from = city,
+    values_from = estimate,
+    names_prefix = ""
+  ) %>%
+  group_by(variable_label) %>%
+  mutate(
+    difference = Schertz - Cibolo,
+    schertz_growth_rate = round((Schertz / lag(Schertz, order_by = year) - 1) * 100, 1),
+    cibolo_growth_rate = round((Cibolo / lag(Cibolo, order_by = year) - 1) * 100, 1)
+  ) %>%
+  ungroup() %>%
+  arrange(variable_label, year)
+
+#==============================================================================
+# STEP 6: CREATE CHARTS AND ANALYSIS
+#==============================================================================
+
+# Key indicators for automatic chart generation
+key_indicators <- c(
+  "Total Population",
+  "Median Household Income",
+  "Per Capita Income",
+  "Median Home Value",
+  "Percent Bachelor's Degree+",
+  "Unemployment Rate (%)"
+)
+
+# Create dashboard of key charts
+key_charts <- create_chart_dashboard(longitudinal_data, key_indicators, save_plots = TRUE)
+
+# Display charts in R
+cat("=== DISPLAYING KEY CHARTS ===\n")
+walk2(key_charts, names(key_charts), function(chart, name) {
+  if(!is.null(chart)) {
+    print(chart)
+    cat("\n--- Chart for", name, "displayed ---\n\n")
+  }
+})
+
+# Enhanced Per Capita Income Analysis (as requested)
+cat("=== DETAILED PER CAPITA INCOME ANALYSIS ===\n")
+per_capita_analysis <- analyze_variable_trends(longitudinal_data, "Per Capita Income")
+per_capita_chart <- create_line_chart(longitudinal_data, "Per Capita Income")
+
+if(!is.null(per_capita_chart)) {
+  print(per_capita_chart)
+
+  year_range <- paste0(min(ANALYSIS_YEARS), "_", max(ANALYSIS_YEARS))
+  ggsave(paste0("per_capita_income_detailed_", year_range, ".png"),
+         per_capita_chart, width = 12, height = 8, dpi = 300)
+  cat("Detailed Per Capita Income chart saved.\n\n")
+}
+
+#==============================================================================
+# STEP 7: EXPORT DATA AND RESULTS
+#==============================================================================
+
+# Create filename with year range
+year_range <- paste0(min(ANALYSIS_YEARS), "_", max(ANALYSIS_YEARS))
+
+# Export data in multiple formats
+chart_ready_data <- longitudinal_data %>%
+  select(city, year, period, category, variable_label, estimate, moe) %>%
+  arrange(category, variable_label, city, year)
+
+# Excel workbook with multiple sheets
+write_xlsx(
+  list(
+    "Chart_Ready_Data" = chart_ready_data,
+    "Wide_Format" = longitudinal_wide,
+    "Cibolo_Only" = cibolo_data,
+    "Schertz_Only" = schertz_data,
+    "Variable_List" = tibble(
+      variable_code = names(longitudinal_vars),
+      variable_label = unname(longitudinal_vars),
+      description = "ACS 5-Year Estimates"
+    )
+  ),
+  path = paste0("cibolo_schertz_charts_", year_range, ".xlsx")
+)
+
+# CSV exports
+write_csv(longitudinal_data, paste0("longitudinal_chart_data_", year_range, ".csv"))
+write_csv(longitudinal_wide, paste0("longitudinal_wide_", year_range, ".csv"))
+
+#==============================================================================
+# STEP 8: SUMMARY AND USER FUNCTIONS
+#==============================================================================
+
+cat("=== LONGITUDINAL CHART ANALYSIS SUMMARY ===\n")
+cat("Analysis period:", min(ANALYSIS_YEARS), "to", max(ANALYSIS_YEARS), "\n")
+cat("Total years analyzed:", length(unique(longitudinal_data$year)), "\n")
+cat("Variables tracked:", length(longitudinal_vars), "\n")
+cat("Charts created:", length(key_charts), "\n")
+cat("Excel file saved: cibolo_schertz_charts_", year_range, ".xlsx\n\n")
+
+# Show available variables for plotting
+cat("=== AVAILABLE VARIABLES FOR LINE CHARTS ===\n")
+available_vars <- longitudinal_data %>%
+  distinct(category, variable_label) %>%
+  arrange(category, variable_label)
+
+for(cat_name in unique(available_vars$category)) {
+  cat("\n", cat_name, ":\n")
+  vars_in_cat <- available_vars %>% filter(category == cat_name) %>% pull(variable_label)
+  cat(paste("-", vars_in_cat), sep = "\n")
+}
+
+# Enhanced user function for creating charts
+plot_comparison <- function(variable_name, save_plot = FALSE, width = 12, height = 8, analyze_trends = FALSE) {
+  chart <- create_line_chart(longitudinal_data, variable_name)
+
+  if(!is.null(chart)) {
+    print(chart)
+
+    if(save_plot) {
+      year_range <- paste0(min(ANALYSIS_YEARS), "_", max(ANALYSIS_YEARS))
+      filename <- paste0(str_replace_all(str_to_lower(variable_name), "[^a-z0-9]", "_"),
+                        "_", year_range, ".png")
+      ggsave(filename, chart, width = width, height = height, dpi = 300)
+      cat("Chart saved as:", filename, "\n")
+    }
+
+    if(analyze_trends) {
+      analyze_variable_trends(longitudinal_data, variable_name)
+    }
+  }
+
+  return(chart)
+}
+
+# Function to quickly change years and re-run chart analysis
+rerun_chart_analysis <- function(new_years, key_vars = key_indicators) {
+  cat("=== RE-RUNNING CHART ANALYSIS ===\n")
+  cat("New years:", paste(new_years, collapse = ", "), "\n\n")
+
+  # Update global variable
+  ANALYSIS_YEARS <<- new_years
+
+  # Re-run data collection
+  new_data <- get_longitudinal_data(years = new_years)
+
+  # Create new charts
+  new_charts <- create_chart_dashboard(new_data, key_vars, save_plots = TRUE)
+
+  # Quick export
+  year_range <- paste0(min(new_years), "_", max(new_years))
+  write_csv(new_data, paste0("quick_chart_data_", year_range, ".csv"))
+
+  cat("Quick chart analysis complete!\n")
+  return(new_data)
+}
+
+# Growth summary for all key variables
+growth_summary <- longitudinal_data %>%
+  filter(variable_label %in% key_indicators) %>%
+  group_by(city, variable_label) %>%
+  summarise(
+    start_value = first(estimate, order_by = year),
+    end_value = last(estimate, order_by = year),
+    total_growth_pct = round(((end_value / start_value) - 1) * 100, 1),
+    annual_growth_rate = round((((end_value / start_value)^(1/(max(year) - min(year)))) - 1) * 100, 2),
+    .groups = "drop"
+  ) %>%
+  arrange(variable_label, city)
+
+cat("\n=== GROWTH SUMMARY FOR KEY INDICATORS ===\n")
+print(growth_summary)
+
+cat("\n=== QUICK USAGE EXAMPLES ===\n")
+cat("Create any line chart:\n")
+cat("plot_comparison('Total Population')\n")
+cat("plot_comparison('Median Home Value', save_plot = TRUE, analyze_trends = TRUE)\n\n")
+
+cat("Change analysis years and re-run:\n")
+cat("rerun_chart_analysis(2015:2022)  # Recent years only\n")
+cat("rerun_chart_analysis(c(2009, 2015, 2022))  # Snapshot comparison\n")
+cat("rerun_chart_analysis(2010:2019)  # Pre-pandemic decade\n")

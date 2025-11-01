@@ -1,0 +1,325 @@
+---
+title: "Cibolo v Schertz Using TidyCensus"
+author: "Dan Swart"
+format: html
+---
+
+## Quarto
+
+This R code using tidycensus will create a comprehensive comparison spreadsheet that's actually more powerful than manually downloading from data.census.gov. Here's what it does:
+Key Features:
+
+Automated Data Collection: Pulls all the key variables from the Data Profile tables (DP02, DP03, DP04, DP05) mentioned in the workflow
+Side-by-Side Comparison: Creates a wide format table with both cities for easy comparison
+Calculated Differences: Automatically computes differences and ratios between the cities
+Multiple Output Formats: Exports to both Excel (with multiple sheets) and CSV
+Time Series Bonus: Includes code to get historical trends (2018-2022)
+
+Before Running:
+
+Get a Census API Key (free): https://api.census.gov/data/key_signup.html
+Install packages if needed:
+Using tidycensus eliminates most of the manual downloading suggested in the workflow. Here's what changes:
+What tidycensus Replaces:
+✅ No need to manually download from data.census.gov:
+
+All ACS data (DP02, DP03, DP04, DP05 tables)
+Decennial Census data
+Population estimates
+Most demographic/economic/housing variables
+
+✅ No CSV/Excel file management:
+
+Data comes directly into R as clean data frames
+No need to wrangle multiple downloaded files
+Automatic variable labeling and geographic coding
+
+What You Still Might Need Manual Downloads For:
+❌ LEHD Applications (tidycensus doesn't cover these):
+
+OnTheMap - Commuting patterns, workplace analysis
+QWI Explorer - Quarterly workforce indicators
+J2J Explorer - Job-to-job flows
+These require using the web applications directly
+
+❌ NHGIS Historical Data:
+
+Time series with standardized boundaries (1790-present)
+Historical tract boundary normalization
+tidycensus goes back to ~2009 for ACS, 1990 for Decennial
+
+❌ Specialized Surveys:
+
+Business Dynamics Statistics
+Some experimental datasets
+
+Revised Workflow with tidycensus:
+Phase 1-2: Demographics & Current Analysis → 100% tidycensus ✅
+Phase 3: Workforce Analysis → Mostly manual web apps ❌
+Phase 4: Historical Context → Mixed (tidycensus + NHGIS) ⚠️
+Bottom Line:
+For your Cibolo/Schertz analysis, tidycensus handles about 70-80% of the data collection automatically. You only need manual downloads if you want:
+
+Detailed commuting/workforce flows (OnTheMap)
+Pre-1990 historical comparisons (NHGIS)
+Business establishment data
+
+The demographic, economic, housing, and recent population trends can all be pulled directly into R - no manual downloading required!
+
+
+```{r}
+
+# City Comparison Analysis: Cibolo, TX vs Schertz, TX
+# Using tidycensus to replicate data.census.gov functionality
+
+# Load required libraries
+library(tidycensus)
+library(tidyverse)
+library(writexl)
+
+# Set up Census API key (get free key from https://api.census.gov/data/key_signup.html)
+# census_api_key("YOUR_API_KEY_HERE", install = TRUE) # Run once to save key
+
+# Define the cities for comparison
+cities <- c("Cibolo city, Texas", "Schertz city, Texas")
+
+# Define key variables from the data profiles mentioned in workflow
+# These correspond to the DP tables: DP02, DP03, DP04, DP05
+
+demographic_vars <- c(
+  # Population and Age (DP05)
+  total_pop = "DP05_0001",
+  median_age = "DP05_0018",
+  under_18 = "DP05_0019P",
+  over_65 = "DP05_0024P",
+  
+  # Race/Ethnicity (DP05)
+  white_alone = "DP05_0037P",
+  black_alone = "DP05_0038P", 
+  hispanic = "DP05_0071P",
+  
+  # Social Characteristics (DP02)
+  households = "DP02_0001",
+  avg_household_size = "DP02_0016",
+  married_couple_families = "DP02_0007P",
+  bachelor_plus = "DP02_0065P",
+  
+  # Economic Characteristics (DP03)  
+  civilian_labor_force = "DP03_0002",
+  unemployment_rate = "DP03_0005P",
+  median_hh_income = "DP03_0062",
+  per_capita_income = "DP03_0088",
+  poverty_rate = "DP03_0119P",
+  
+  # Housing Characteristics (DP04)
+  housing_units = "DP04_0001",
+  occupied_units = "DP04_0002",
+  vacancy_rate = "DP04_0003P",
+  owner_occupied = "DP04_0046P",
+  median_home_value = "DP04_0089",
+  median_gross_rent = "DP04_0134"
+)
+
+# Function to get data for both cities
+get_city_comparison <- function(variables, year = 2022) {
+  
+  # Get data for both cities
+  city_data <- get_acs(
+    geography = "place",
+    variables = variables,
+    state = "TX",
+    year = year,
+    survey = "acs5"
+  ) %>%
+    # Filter for our specific cities
+    filter(NAME %in% cities) %>%
+    # Clean city names for easier handling
+    mutate(
+      city = case_when(
+        str_detect(NAME, "Cibolo") ~ "Cibolo",
+        str_detect(NAME, "Schertz") ~ "Schertz"
+      )
+    ) %>%
+    select(city, variable, estimate, moe)
+  
+  return(city_data)
+}
+
+# Get the data
+comparison_data <- get_city_comparison(demographic_vars)
+
+# Create wide format for easy comparison
+comparison_wide <- comparison_data %>%
+  select(city, variable, estimate) %>%
+  pivot_wider(
+    names_from = city,
+    values_from = estimate,
+    names_prefix = ""
+  ) %>%
+  # Add variable labels for readability
+  mutate(
+    indicator = case_when(
+      variable == "total_pop" ~ "Total Population",
+      variable == "median_age" ~ "Median Age",
+      variable == "under_18" ~ "Percent Under 18",
+      variable == "over_65" ~ "Percent Over 65",
+      variable == "white_alone" ~ "Percent White Alone",
+      variable == "black_alone" ~ "Percent Black Alone",
+      variable == "hispanic" ~ "Percent Hispanic/Latino",
+      variable == "households" ~ "Total Households",
+      variable == "avg_household_size" ~ "Average Household Size",
+      variable == "married_couple_families" ~ "Percent Married Couple Families",
+      variable == "bachelor_plus" ~ "Percent Bachelor's Degree or Higher",
+      variable == "civilian_labor_force" ~ "Civilian Labor Force",
+      variable == "unemployment_rate" ~ "Unemployment Rate (%)",
+      variable == "median_hh_income" ~ "Median Household Income ($)",
+      variable == "per_capita_income" ~ "Per Capita Income ($)",
+      variable == "poverty_rate" ~ "Poverty Rate (%)",
+      variable == "housing_units" ~ "Total Housing Units",
+      variable == "occupied_units" ~ "Occupied Housing Units",
+      variable == "vacancy_rate" ~ "Vacancy Rate (%)",
+      variable == "owner_occupied" ~ "Percent Owner Occupied",
+      variable == "median_home_value" ~ "Median Home Value ($)",
+      variable == "median_gross_rent" ~ "Median Gross Rent ($)",
+      TRUE ~ variable
+    ),
+    # Add category groupings
+    category = case_when(
+      variable %in% c("total_pop", "median_age", "under_18", "over_65", 
+                     "white_alone", "black_alone", "hispanic") ~ "Demographics",
+      variable %in% c("households", "avg_household_size", "married_couple_families", 
+                     "bachelor_plus") ~ "Social Characteristics",
+      variable %in% c("civilian_labor_force", "unemployment_rate", "median_hh_income", 
+                     "per_capita_income", "poverty_rate") ~ "Economic Characteristics",
+      variable %in% c("housing_units", "occupied_units", "vacancy_rate", 
+                     "owner_occupied", "median_home_value", "median_gross_rent") ~ "Housing Characteristics",
+      TRUE ~ "Other"
+    )
+  ) %>%
+  # Calculate differences and ratios
+  mutate(
+    difference = Schertz - Cibolo,
+    ratio_schertz_to_cibolo = round(Schertz / Cibolo, 2)
+  ) %>%
+  # Reorder columns
+  select(category, indicator, Cibolo, Schertz, difference, ratio_schertz_to_cibolo, variable) %>%
+  # Arrange by category and indicator
+  arrange(category, indicator)
+
+# View the comparison
+print(comparison_wide)
+
+# Create separate sheets by category for Excel export
+demo_sheet <- comparison_wide %>% filter(category == "Demographics")
+social_sheet <- comparison_wide %>% filter(category == "Social Characteristics") 
+econ_sheet <- comparison_wide %>% filter(category == "Economic Characteristics")
+housing_sheet <- comparison_wide %>% filter(category == "Housing Characteristics")
+
+# Create a summary sheet with key highlights
+summary_sheet <- comparison_wide %>%
+  filter(indicator %in% c(
+    "Total Population", "Median Age", "Median Household Income ($)",
+    "Percent Bachelor's Degree or Higher", "Unemployment Rate (%)",
+    "Median Home Value ($)", "Percent Owner Occupied"
+  )) %>%
+  select(-variable)
+
+# Export to Excel with multiple sheets
+# write_xlsx(
+#   list(
+#     "Summary" = summary_sheet,
+#     "Demographics" = demo_sheet,
+#     "Social" = social_sheet,
+#     "Economic" = econ_sheet,
+#     "Housing" = housing_sheet,
+#     "Complete" = comparison_wide
+#   ),
+#   path = "cibolo_schertz_comparison_2022.xlsx"
+# )
+
+# # Alternative: Export to CSV
+# write_csv(comparison_wide, "cibolo_schertz_comparison_2022.csv")
+
+# For quick viewing in console with better formatting
+comparison_display <- comparison_wide %>%
+  select(-variable) %>%
+  mutate(
+    across(where(is.numeric), ~ifelse(. > 1000, scales::comma(.), .))
+  )
+
+# Print by category for easier reading
+cat("\n=== DEMOGRAPHICS ===\n")
+print(comparison_display %>% filter(category == "Demographics"), n = Inf)
+
+cat("\n=== SOCIAL CHARACTERISTICS ===\n") 
+print(comparison_display %>% filter(category == "Social Characteristics"), n = Inf)
+
+cat("\n=== ECONOMIC CHARACTERISTICS ===\n")
+print(comparison_display %>% filter(category == "Economic Characteristics"), n = Inf)
+
+cat("\n=== HOUSING CHARACTERISTICS ===\n")
+print(comparison_display %>% filter(category == "Housing Characteristics"), n = Inf)
+
+# Optional: Create a time series comparison for key indicators
+# This replicates the historical ACS comparison mentioned in the workflow
+
+get_time_series_comparison <- function(variables, years = 2018:2022) {
+  
+  # Get data for multiple years
+  time_series_data <- map_dfr(years, function(yr) {
+    get_acs(
+      geography = "place",
+      variables = variables,
+      state = "TX", 
+      year = yr,
+      survey = "acs5"
+    ) %>%
+      filter(NAME %in% cities) %>%
+      mutate(
+        year = yr,
+        city = case_when(
+          str_detect(NAME, "Cibolo") ~ "Cibolo",
+          str_detect(NAME, "Schertz") ~ "Schertz"
+        )
+      )
+  })
+  
+  return(time_series_data)
+}
+
+# Get time series for key indicators
+key_vars <- c(
+  total_pop = "DP05_0001",
+  median_hh_income = "DP03_0062", 
+  median_home_value = "DP04_0089",
+  bachelor_plus = "DP02_0065P"
+)
+
+time_series <- get_time_series_comparison(key_vars)
+
+# Create time series comparison table
+time_series_wide <- time_series %>%
+  select(city, variable, estimate, year) %>%
+  pivot_wider(
+    names_from = c(city, year),
+    values_from = estimate,
+    names_sep = "_"
+  )
+
+print("=== TIME SERIES COMPARISON (2018-2022) ===")
+print(time_series_wide)
+
+# # Export time series to separate file
+# write_csv(time_series_wide, "cibolo_schertz_time_series_2018_2022.csv")
+
+
+
+
+```
+
+
+
+
+
+
+
