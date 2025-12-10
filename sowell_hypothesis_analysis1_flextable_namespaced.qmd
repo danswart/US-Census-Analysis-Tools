@@ -1,0 +1,1132 @@
+---
+title: "Testing the Sowell Success Hypothesis: Do Family Values Trump Demographics?"
+subtitle: "Analyzing Educational and Economic Outcomes Using US Census PUMS Data"
+authors: 
+  - name: "Dan Swart, CPA (ret)"
+  - name: "Claude Sonnet 4.5"
+date: today
+date-format: long
+# bibliography: manual-refs.bib
+format:
+  html:
+    resources:
+      - reference-backlinks.js
+    include-after-body:    
+      - text: |
+          # <script type="text/javascript" src="reference-backlinks.js"></script>
+    default: true         
+    code-copy: true
+    code-link: true        # This adds individual buttons
+    code-fold: true        # Hide code by default, show on click
+    code-summary: "Show the code"
+    code-overflow: wrap
+    code-block-bg: "#FAEBD7"
+    code-block-border-left: "#31BAE9"
+    embed-resources: false  # Fast for drafts. Override for final output
+    include-in-header:
+      - text: 
+          <link href="https://fonts.googleapis.com/css2?family=Lato&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Fira+Mono&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Montserrat&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Cabin&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Schoolbell&display=swap" rel="stylesheet">
+      - header.html
+    css:
+      - swart.css
+      - tachyons.min.css
+      - r-colors.css
+    fontsize: 18pt
+    lightbox: true
+    page-layout: full
+    fig-width: 12
+    fig-height: 10
+    fig-dpi: 300
+    html-math-method: katex
+    df-print: paged
+    toc: true
+    toc-float: true
+    citeproc: true
+    link-citations: true
+    linestretch: 1.0
+    
+    
+    
+  typst:
+    fig-width: 12
+    fig-height: 10
+    fig-dpi: 300
+    margin:
+      x: 1in
+      y: 1in
+    toc: true
+    fontsize: 16pt
+    mainfont: "Cabin"
+  
+
+    
+  revealjs:
+    slide-number: true
+    transition: fade
+    code-overflow: wrap
+    center: true
+    smaller: true
+    scrollable: true
+    chalkboard: true
+    multiplex: false
+    theme: solarized
+    reference-location: margin
+    logo: img/red-cross-640-435.png
+    footer: "Footer text"
+    code-block-height: 650px
+
+
+
+  # docx:
+  #   highlight-style: github
+  #   fig_caption: true
+
+
+
+editor: source
+
+quarto:
+  render:
+    cache-refresh: true
+
+
+# for .qmd filesd
+execute:
+  echo: true
+  message: false
+  warning: false
+  eval: true
+  fig-width: 12
+  fig-height: 10
+
+
+# for .rmd files
+knitr:
+  opts_chunk:
+    echo: true
+    error: false
+    warning: false
+    message: false
+    cache: false
+
+
+---
+
+
+```{r}
+#| label: setup
+#| include: false
+
+
+# install.packages(c("mapview", "survey", "srvyr", "arcgislayers"))
+
+# census_api_key("95496766c51541ee6f402c1e1a8658581285b759", install = TRUE, overwrite = TRUE)
+
+
+# # load libraries - NOT NEEDED
+
+
+# Force dplyr's select to take precedence
+select <- dplyr::select
+filter <- dplyr::filter
+
+# Options
+base::options(scipen = 999)
+base::options(qic.clshade = TRUE)
+base::options(qic.linecol = 'black')
+base::options(qic.signalcol = "firebrick")
+base::options(qic.targetcol = "purple")
+base::options(DT.options = base::list(dom = 'pBlfrti'))
+base::options(shiny.maxRequestSize = 50 * 1024^2)
+base::options(tigris_use_cache = TRUE)
+base::options(device = "RStudioGD") 
+
+
+# Flextable defaults:
+flextable::set_flextable_defaults(
+  font.size = 14, 
+  font.family = "Cabin",
+  font.color = "black",
+  table.layout = "fixed",
+  border.color = "darkgray",
+  padding.top = 3, padding.bottom = 3,
+  padding.left = 4, padding.right = 4,
+  line_spacing = 1.3,
+  digits = 2,
+  decimal.mark = ".",
+  big.mark = " ",
+  na_str = "<na>",
+  layout = "autofit"
+)
+
+
+# Set global theme for consistent plots
+ggplot2::theme_set(
+  ggplot2::theme_minimal(base_size = 20) +
+    ggplot2::theme(
+      plot.title.position = "plot",
+      plot.title = ggtext::element_textbox_simple(
+        family = "Cabin",
+        face = "bold",
+        color = "darkgreen",
+        size = 26,
+        fill = "yellow",
+        lineheight = 1.2,
+        padding = ggplot2::margin(5.5, 5.5, 0.0, 5.5),
+        margin = ggplot2::margin(0, 0, 5.5, 0)
+      ),
+      plot.subtitle = ggtext::element_textbox_simple(
+        family = "Cabin",
+        color = "darkgreen",
+        face = "bold",
+        size = 24,
+        fill = "yellow",
+        lineheight = 1.2,
+        padding = ggplot2::margin(5.5, 5.5, 5.5, 5.5),
+        margin = ggplot2::margin(10.5, 0, 5.5, 0)
+      ),
+      plot.caption = ggtext::element_markdown(
+        family = "Cabin",
+        size = 22,
+        hjust = 1,
+        color = "darkblue",
+        face = "italic",
+        fill = "yellow",
+        lineheight = 1.0
+      ),
+      axis.text.x = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 20,
+        angle = 45,
+        hjust = 1
+      ),
+      axis.title.x = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 20),
+      axis.text.y = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 20,
+        angle = 45,
+        hjust = 1
+      ),
+      axis.title.y = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 20),
+      strip.text = ggtext::element_markdown(
+        family = "Cabin",
+        color = "black",
+        size = ggplot2::rel(1.1),
+        face = "italic",
+        margin = ggplot2::margin(2, 0, 0.5, 0, "lines")
+      ),
+      axis.text = ggtext::element_markdown(
+        family = "Cabin",
+        color = "black"),
+      panel.background = ggplot2::element_rect(fill = "white", color = NA),
+      plot.background = ggplot2::element_rect(fill = "white", color = NA),
+      legend.position = "none",
+      panel.spacing.x = grid::unit(1.5, "cm"),
+      panel.spacing.y = grid::unit(1.5, "cm"),
+      plot.margin = ggplot2::margin(20, 20, 20, 20, "pt")
+    )
+)
+
+
+  
+# Set seed for reproducibility
+base::set.seed(123)
+
+```
+
+
+## Research Hypothesis
+
+**Central Thesis**: High-performing individuals share certain behavioral characteristics (graduating high school, marrying before having children, maintaining employment) that transcend race, poverty, language barriers, and family structure. Success is primarily determined by family attitudes toward education and personal responsibility rather than demographic factors.
+
+**Thomas Sowell's Framework**: Individuals who (1) graduate high school, (2) wait until marriage to have children, and (3) maintain employment have very high probability of success regardless of race, economic background, or ethnic origin.
+
+## Data Sources and Methodology
+
+### Primary Data Sources
+- **PUMS (Public Use Microdata Sample)**: Individual/household level data from American Community Survey
+- **ACS 5-Year Estimates**: Community-level demographic data via tidycensus
+- **Geographic Scope**: 
+  - Phase 1: Schertz-Cibolo-Universal City ISD, TX
+  - Phase 2: San Antonio MSA, TX
+  - Future phases: Controlled geographic expansion
+
+```{r all-purpose-cache-function}
+#| label: all-purpose-cache-function
+#| eval: true
+
+# Generic tidycensus caching function
+cache_census_api_call <- function(
+    type = base::c("acs", "pums", "variables", "decennial"),
+    year = 2023,
+    survey = "acs5",
+    state = NULL,
+    geography = NULL,
+    table = NULL,
+    variables = NULL,
+    cache_dir = "data",
+    force_refresh = FALSE
+) {
+  
+  type <- base::match.arg(type)
+  
+  # Build descriptive cache filename
+  state_str <- if (base::is.null(state)) {
+    "none"
+  } else if (base::length(state) == 1 && state == "all") {
+    "all"
+  } else {
+    base::paste(base::sort(state), collapse = "-")
+  }
+  
+  vars_str <- if (!base::is.null(variables)) {
+    base::paste0("_", base::substr(rlang::hash(variables), 1, 8))
+  } else if (!base::is.null(table)) {
+    base::paste0("_", table)
+  } else {
+    ""
+  }
+  
+  geo_str <- if (!base::is.null(geography)) {
+    base::paste0("_", geography)
+  } else {
+    ""
+  }
+  
+  cache_file <- base::file.path(
+    cache_dir,
+    base::paste0(type, "_", survey, "_", year, "_", state_str, geo_str, vars_str, ".rds")
+  )
+  
+  # Create cache directory if needed
+  if (!base::dir.exists(cache_dir)) {
+    base::dir.create(cache_dir, recursive = TRUE)
+  }
+  
+  # Return cached data if exists and not forcing refresh
+  if (base::file.exists(cache_file) && !force_refresh) {
+    base::message("Loading from cache: ", cache_file)
+    base::return(base::readRDS(cache_file))
+  }
+  
+  # Otherwise fetch from API
+  base::message("Fetching from API...")
+  
+  result <- base::switch(
+    type,
+    "variables" = tidycensus::load_variables(year, survey),
+    "acs" = tidycensus::get_acs(
+      geography = geography,
+      table = table,
+      variables = variables,
+      state = state,
+      year = year,
+      survey = survey
+    ),
+    "pums" = tidycensus::get_pums(
+      variables = variables,
+      state = state,
+      year = year,
+      survey = survey
+    ),
+    "decennial" = tidycensus::get_decennial(
+      geography = geography,
+      variables = variables,
+      state = state,
+      year = year
+    )
+  )
+  
+  # Cache and return
+  base::saveRDS(result, cache_file)
+  base::message("Cached to: ", cache_file)
+  
+  result
+}
+```
+
+```{r geographic-setup}
+#| label: geographic-definitions
+
+# Define geographic areas for analysis
+geographic_areas_list <- base::list(
+  scuc_isd = base::list(
+    name = "Schertz-Cibolo-Universal City ISD Area",
+    state = "TX",
+    # Will use PUMA codes that overlap with school district
+    puma_codes = base::c("02104", "02105"), # Approximate PUMA overlap
+    description = "Initial test geography - suburban/small city"
+  ),
+  san_antonio_msa = base::list(
+    name = "San Antonio MSA",
+    state = "TX", 
+    msa_code = "41700",
+    description = "Urban comparison geography"
+  )
+)
+
+base::print("Geographic areas defined for analysis:")
+for (area in base::names(geographic_areas_list)) {
+  base::cat(base::sprintf("- %s: %s\n", 
+              geographic_areas_list[[area]]$name,
+              geographic_areas_list[[area]]$description))
+}
+```
+
+## Variable Definitions
+
+### Success Indicators (Outcome Variables)
+
+```{r success-indicators-data}
+#| label: define-success-indicators-data
+
+success_indicators_definitions <- tibble::tribble(
+  ~variable_name, ~acs_variable, ~description, ~success_threshold,
+  "household_income_median", "HINCP", "Household Income (Past 12 Months)", "> 75th percentile by geography",
+  "educational_attainment_bachelor_plus", "SCHL", "Educational Attainment: Bachelor's+", "Code 21-24 (Bachelor's through Doctorate)",
+  "employment_status_fulltime", "ESR", "Employment Status", "Code 1 (Employed, at work)",
+  "poverty_status_above_threshold", "POVPIP", "Poverty Status (% of poverty line)", "> 200% of poverty threshold",
+  "homeownership_status", "TEN", "Housing Tenure", "Code 1-2 (Owned/being bought)",
+  "occupation_professional_managerial", "OCCP", "Occupation Categories", "Management/Professional codes"
+)
+```
+
+::: {.content-visible when-format="html"}
+```{r success-indicators-dt}
+#| label: success-indicators-dt
+
+DT::datatable(
+  success_indicators_definitions,
+  caption = "Success Outcome Variables from PUMS Data",
+  options = base::list(pageLength = 10, scrollX = TRUE),
+  rownames = FALSE
+)
+```
+:::
+
+::: {.content-visible unless-format="html"}
+```{r success-indicators-ft}
+#| label: success-indicators-ft
+
+flextable::flextable(success_indicators_definitions) |>
+  flextable::set_caption(caption = "Success Outcome Variables from PUMS Data") |>
+  flextable::add_header_lines(values = "Success Indicators") |>
+  flextable::color(i = 1, color = "blue", part = "header") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, align = "center", part = "header") |>
+  flextable::fontsize(i = 1, size = 14, part = "header") |>
+  flextable::bg(i = 1, bg = "white", part = "header") |>
+  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+  ftExtra::colformat_md() |>
+  flextable::autofit()
+```
+:::
+
+### Sowell Framework Variables (Predictor Variables)
+
+```{r sowell-framework-data}
+#| label: define-sowell-framework-data
+
+sowell_framework_variables <- tibble::tribble(
+  ~framework_component, ~variable_name, ~acs_variable, ~description, ~coding_logic,
+  "High School Graduation", "education_hs_graduate", "SCHL", "Educational Attainment", "Codes 16-24 (HS diploma through doctorate)",
+  "Marriage Before Children", "marital_status_at_first_birth", "MSP + FER", "Marriage/Fertility timing", "Married before age at first birth",
+  "Employment Maintenance", "employment_consistency", "ESR + WKHP + WKW", "Work history indicators", "Full-time, year-round work pattern",
+  "Family Stability Proxy", "household_structure_stable", "HHT + NOC", "Household composition", "Two-parent OR stable single-parent",
+  "Educational Values Proxy", "school_enrollment_appropriate", "SCH", "School enrollment patterns", "Age-appropriate enrollment"
+)
+```
+
+::: {.content-visible when-format="html"}
+```{r sowell-framework-dt}
+#| label: sowell-framework-dt
+
+DT::datatable(
+  sowell_framework_variables,
+  caption = "Sowell Framework Variables (Behavioral/Attitudinal Proxies)",
+  options = base::list(pageLength = 10, scrollX = TRUE),
+  rownames = FALSE
+)
+```
+:::
+
+::: {.content-visible unless-format="html"}
+```{r sowell-framework-ft}
+#| label: sowell-framework-ft
+
+flextable::flextable(sowell_framework_variables) |>
+  flextable::set_caption(caption = "Sowell Framework Variables (Behavioral/Attitudinal Proxies)") |>
+  flextable::add_header_lines(values = "Sowell Framework Predictors") |>
+  flextable::color(i = 1, color = "blue", part = "header") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, align = "center", part = "header") |>
+  flextable::fontsize(i = 1, size = 14, part = "header") |>
+  flextable::bg(i = 1, bg = "white", part = "header") |>
+  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+  ftExtra::colformat_md() |>
+  flextable::autofit()
+```
+:::
+
+### Control Variables (Demographic Factors)
+
+```{r control-variables-data}
+#| label: define-control-variables-data
+
+demographic_control_variables <- tibble::tribble(
+  ~category, ~variable_name, ~acs_variable, ~description,
+  "Race/Ethnicity", "race_ethnicity_detailed", "RAC1P + HISP", "Race and Hispanic origin",
+  "Economic Status", "family_poverty_status", "POVPIP", "Family poverty level (% of threshold)",
+  "Language", "english_proficiency_level", "ENG", "English language proficiency",
+  "Family Structure", "family_type_structure", "HHT", "Household type and family structure",
+  "Geographic Mobility", "residence_mobility_status", "MIG", "Migration/residential mobility",
+  "Age Demographics", "age_category_standardized", "AGEP", "Age in standardized categories"
+)
+```
+
+::: {.content-visible when-format="html"}
+```{r control-variables-dt}
+#| label: control-variables-dt
+
+DT::datatable(
+  demographic_control_variables,
+  caption = "Demographic Control Variables",
+  options = base::list(pageLength = 10, scrollX = TRUE),
+  rownames = FALSE
+)
+```
+:::
+
+::: {.content-visible unless-format="html"}
+```{r control-variables-ft}
+#| label: control-variables-ft
+
+flextable::flextable(demographic_control_variables) |>
+  flextable::set_caption(caption = "Demographic Control Variables") |>
+  flextable::add_header_lines(values = "Demographic Controls") |>
+  flextable::color(i = 1, color = "blue", part = "header") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, align = "center", part = "header") |>
+  flextable::fontsize(i = 1, size = 14, part = "header") |>
+  flextable::bg(i = 1, bg = "white", part = "header") |>
+  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+  ftExtra::colformat_md() |>
+  flextable::autofit()
+```
+:::
+
+## Data Collection Functions
+
+```{r data-collection-functions}
+#| label: data-collection-functions
+
+# Function to retrieve PUMS data for specific geography (using cache_census_api_call)
+retrieve_pums_data_by_geography <- function(geography_name, year = 2022, cache_dir = "data", force_refresh = FALSE) {
+  
+  geography_info <- geographic_areas_list[[geography_name]]
+  
+  base::cat(base::sprintf("Retrieving PUMS data for: %s\n", geography_info$name))
+  
+  # Define person-level variables
+  person_variables <- base::c(
+    # Demographics
+    "AGEP", "SEX", "RAC1P", "HISP", "ENG",
+    # Education
+    "SCHL", "SCH", 
+    # Employment
+    "ESR", "WKHP", "WKW", "OCCP",
+    # Income/Poverty
+    "POVPIP", "PINCP",
+    # Marriage/Family
+    "MSP", "FER", "ANC"
+  )
+  
+  # Define household-level variables
+  household_variables <- base::c(
+    # Housing
+    "TEN", "HINCP",
+    # Household composition  
+    "HHT", "NOC", "NPF"
+  )
+  
+  # Get PUMS person-level data (with caching)
+  pums_person_data <- cache_census_api_call(
+    type = "pums",
+    variables = person_variables,
+    state = geography_info$state,
+    year = year,
+    survey = "acs5",
+    cache_dir = cache_dir,
+    force_refresh = force_refresh
+  )
+  
+  # Get PUMS household-level data (with caching)
+  pums_household_data <- cache_census_api_call(
+    type = "pums",
+    variables = household_variables,
+    state = geography_info$state,
+    year = year,
+    survey = "acs5",
+    cache_dir = cache_dir,
+    force_refresh = force_refresh
+  )
+  
+  base::return(base::list(
+    person_data = pums_person_data,
+    household_data = pums_household_data,
+    geography = geography_info$name
+  ))
+}
+
+# Function to create Sowell Framework compliance score
+calculate_sowell_compliance_score <- function(person_data) {
+  
+  person_data_scored <- person_data |>
+    dplyr::mutate(
+      # Component 1: High School Graduate (or higher)
+      sowell_component_hs_graduate = dplyr::case_when(
+        SCHL >= 16 ~ 1,
+        SCHL < 16 ~ 0,
+        base::is.na(SCHL) ~ NA_real_,
+        TRUE ~ NA_real_
+      ),
+      
+      # Component 2: Marriage before children (proxy)
+      sowell_component_marriage_first = dplyr::case_when(
+        MSP == 1 & (FER == 0 | base::is.na(FER)) ~ 1,
+        MSP == 1 & FER > 0 ~ 1,
+        MSP != 1 & FER > 0 ~ 0,
+        MSP != 1 & (FER == 0 | base::is.na(FER)) ~ NA_real_,
+        TRUE ~ NA_real_
+      ),
+      
+      # Component 3: Employment (full-time work)
+      sowell_component_employed = dplyr::case_when(
+        ESR == 1 & WKHP >= 35 ~ 1,
+        ESR == 1 & WKHP < 35 ~ 0.5,
+        ESR != 1 ~ 0,
+        base::is.na(ESR) ~ NA_real_,
+        TRUE ~ NA_real_
+      ),
+      
+      # Calculate overall compliance score (0-3 scale)
+      sowell_total_compliance_score = sowell_component_hs_graduate + 
+                                    sowell_component_marriage_first + 
+                                    sowell_component_employed,
+      
+      # Create categorical compliance levels
+      sowell_compliance_category = dplyr::case_when(
+        sowell_total_compliance_score >= 2.5 ~ "High Compliance (2.5-3.0)",
+        sowell_total_compliance_score >= 1.5 ~ "Moderate Compliance (1.5-2.4)", 
+        sowell_total_compliance_score >= 0.5 ~ "Low Compliance (0.5-1.4)",
+        sowell_total_compliance_score >= 0 ~ "Minimal Compliance (0-0.4)",
+        base::is.na(sowell_total_compliance_score) ~ "Insufficient Data",
+        TRUE ~ "Insufficient Data"
+      )
+    )
+  
+  base::return(person_data_scored)
+}
+
+# Function to create demographic control categories
+categorize_demographic_controls <- function(person_data) {
+  
+  person_data_categorized <- person_data |>
+    dplyr::mutate(
+      # Race/ethnicity categories
+      race_ethnicity_category = dplyr::case_when(
+        HISP != 1 & RAC1P == 1 ~ "Non-Hispanic White",
+        HISP != 1 & RAC1P == 2 ~ "Non-Hispanic Black", 
+        HISP != 1 & RAC1P == 6 ~ "Non-Hispanic Asian",
+        HISP == 1 ~ "Hispanic/Latino",
+        TRUE ~ "Other/Multiple Race"
+      ),
+      
+      # Poverty status categories
+      poverty_status_category = dplyr::case_when(
+        POVPIP < 100 ~ "Below Poverty Line (<100%)",
+        POVPIP < 200 ~ "Low Income (100-199%)", 
+        POVPIP < 400 ~ "Middle Income (200-399%)",
+        POVPIP >= 400 ~ "High Income (400%+)",
+        base::is.na(POVPIP) ~ "Income Not Determined"
+      ),
+      
+      # English proficiency categories  
+      english_proficiency_category = dplyr::case_when(
+        ENG == 1 ~ "English Only",
+        ENG == 2 ~ "English Very Well",
+        ENG == 3 ~ "English Well", 
+        ENG == 4 ~ "English Not Well/Not at All",
+        base::is.na(ENG) ~ "Not Applicable/Unknown"
+      ),
+      
+      # Age categories for analysis
+      age_analysis_category = dplyr::case_when(
+        AGEP < 18 ~ "Under 18 (Minors)",
+        AGEP >= 18 & AGEP < 25 ~ "Young Adults (18-24)",
+        AGEP >= 25 & AGEP < 35 ~ "Adults (25-34)",
+        AGEP >= 35 & AGEP < 50 ~ "Middle Age (35-49)", 
+        AGEP >= 50 & AGEP < 65 ~ "Older Adults (50-64)",
+        AGEP >= 65 ~ "Seniors (65+)",
+        TRUE ~ "Age Unknown"
+      )
+    )
+  
+  base::return(person_data_categorized)
+}
+```
+
+## Phase 1 Analysis: Schertz-Cibolo-Universal City Area
+
+```{r phase1-data-collection}
+#| label: phase1-data-collection
+#| eval: false
+
+# Note: This chunk is set to eval=false because it requires a Census API key
+
+# Collect Phase 1 data
+phase1_raw_data <- retrieve_pums_data_by_geography("scuc_isd", year = 2022)
+
+# Process the person-level data
+phase1_person_analysis <- phase1_raw_data$person_data |>
+  calculate_sowell_compliance_score() |>
+  categorize_demographic_controls()
+
+# Create summary statistics
+phase1_summary_by_compliance <- phase1_person_analysis |>
+  dplyr::filter(!base::is.na(sowell_total_compliance_score)) |>
+  dplyr::group_by(sowell_compliance_category, race_ethnicity_category, poverty_status_category) |>
+  dplyr::summarise(
+    sample_size = dplyr::n(),
+    median_personal_income = stats::median(PINCP, na.rm = TRUE),
+    pct_bachelor_plus = base::mean(SCHL >= 21, na.rm = TRUE) * 100,
+    pct_employed_fulltime = base::mean(ESR == 1 & WKHP >= 35, na.rm = TRUE) * 100,
+    .groups = "drop"
+  )
+```
+
+## Sample Analysis Framework (Using Simulated Data)
+
+Since running the full analysis requires a Census API key, here's the analytical framework using simulated data that matches the expected structure:
+
+```{r simulated-analysis-data}
+#| label: simulated-analysis-data
+
+# Create simulated data for demonstration
+base::set.seed(12345)
+n_sample <- 5000
+
+simulated_census_data <- tibble::tibble(
+  # Sowell Framework Components
+  sowell_component_hs_graduate = base::sample(
+    base::c(0, 1), n_sample, replace = TRUE, prob = base::c(0.15, 0.85)
+  ),
+  sowell_component_marriage_first = base::sample(
+    base::c(0, 1), n_sample, replace = TRUE, prob = base::c(0.35, 0.65)
+  ),
+  sowell_component_employed = base::sample(
+    base::c(0, 0.5, 1), n_sample, replace = TRUE, prob = base::c(0.15, 0.15, 0.70)
+  ),
+  
+  # Demographics
+  race_ethnicity_category = base::sample(
+    base::c("Non-Hispanic White", "Non-Hispanic Black", "Hispanic/Latino", 
+            "Non-Hispanic Asian", "Other/Multiple Race"),
+    n_sample, replace = TRUE, prob = base::c(0.45, 0.15, 0.25, 0.10, 0.05)
+  ),
+  poverty_status_category = base::sample(
+    base::c("Below Poverty Line (<100%)", "Low Income (100-199%)", 
+            "Middle Income (200-399%)", "High Income (400%+)"),
+    n_sample, replace = TRUE, prob = base::c(0.15, 0.25, 0.35, 0.25)
+  ),
+  english_proficiency_category = base::sample(
+    base::c("English Only", "English Very Well", "English Well", 
+            "English Not Well/Not at All"),
+    n_sample, replace = TRUE, prob = base::c(0.70, 0.15, 0.10, 0.05)
+  )
+) |>
+  dplyr::mutate(
+    sowell_total_compliance_score = sowell_component_hs_graduate + 
+                                  sowell_component_marriage_first + 
+                                  sowell_component_employed,
+    
+    sowell_compliance_category = dplyr::case_when(
+      sowell_total_compliance_score >= 2.5 ~ "High Compliance (2.5-3.0)",
+      sowell_total_compliance_score >= 1.5 ~ "Moderate Compliance (1.5-2.4)", 
+      sowell_total_compliance_score >= 0.5 ~ "Low Compliance (0.5-1.4)",
+      TRUE ~ "Minimal Compliance (0-0.4)"
+    ),
+    
+    success_probability = 0.15 + (sowell_total_compliance_score * 0.25) + 
+                         stats::rnorm(n_sample, 0, 0.1),
+    success_probability = base::pmax(0, base::pmin(1, success_probability)),
+    
+    personal_income = base::exp(9 + (sowell_total_compliance_score * 0.4) + 
+                         stats::rnorm(n_sample, 0, 0.3)) * 
+                     base::ifelse(poverty_status_category == "High Income (400%+)", 1.3, 1),
+    bachelor_plus = stats::rbinom(n_sample, 1, success_probability),
+    homeownership = stats::rbinom(n_sample, 1, success_probability * 0.8)
+  )
+
+# Analysis 1: Success outcomes by Sowell compliance across demographic groups
+success_by_compliance_demographics <- simulated_census_data |>
+  dplyr::group_by(sowell_compliance_category, race_ethnicity_category, poverty_status_category) |>
+  dplyr::summarise(
+    sample_size = dplyr::n(),
+    median_income = stats::median(personal_income, na.rm = TRUE),
+    pct_bachelor_plus = base::mean(bachelor_plus, na.rm = TRUE) * 100,
+    pct_homeowner = base::mean(homeownership, na.rm = TRUE) * 100,
+    mean_compliance_score = base::mean(sowell_total_compliance_score, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  dplyr::filter(sample_size >= 30)
+```
+
+::: {.content-visible when-format="html"}
+```{r simulated-analysis-dt}
+#| label: simulated-analysis-dt
+
+DT::datatable(
+  utils::head(success_by_compliance_demographics, 20),
+  caption = "Success Outcomes by Sowell Compliance and Demographics (Simulated Data)",
+  options = base::list(pageLength = 15, scrollX = TRUE, dom = 'Bfrtip'),
+  rownames = FALSE
+) |>
+  DT::formatRound(
+    columns = base::c("median_income", "pct_bachelor_plus", "pct_homeowner", "mean_compliance_score"), 
+    digits = 2
+  )
+```
+:::
+
+::: {.content-visible unless-format="html"}
+```{r simulated-analysis-ft}
+#| label: simulated-analysis-ft
+
+flextable::flextable(utils::head(success_by_compliance_demographics, 20)) |>
+  flextable::set_caption(caption = "Success Outcomes by Sowell Compliance and Demographics (Simulated Data)") |>
+  flextable::add_header_lines(values = "Success by Compliance Level") |>
+  flextable::color(i = 1, color = "blue", part = "header") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, align = "center", part = "header") |>
+  flextable::fontsize(i = 1, size = 14, part = "header") |>
+  flextable::bg(i = 1, bg = "white", part = "header") |>
+  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+  flextable::colformat_double(j = c("median_income", "pct_bachelor_plus", "pct_homeowner", "mean_compliance_score"), digits = 2) |>
+  ftExtra::colformat_md() |>
+  flextable::autofit()
+```
+:::
+
+```{r key-hypothesis-test-data}
+#| label: key-hypothesis-test-data
+
+# Test the core hypothesis: Do high-compliance individuals succeed regardless of demographics?
+hypothesis_test_results <- simulated_census_data |>
+  dplyr::filter(sowell_compliance_category == "High Compliance (2.5-3.0)") |>
+  dplyr::group_by(race_ethnicity_category, poverty_status_category) |>
+  dplyr::summarise(
+    sample_size = dplyr::n(),
+    median_income = stats::median(personal_income, na.rm = TRUE),
+    income_75th_percentile = stats::quantile(personal_income, 0.75, na.rm = TRUE),
+    pct_bachelor_plus = base::mean(bachelor_plus, na.rm = TRUE) * 100,
+    pct_homeowner = base::mean(homeownership, na.rm = TRUE) * 100,
+    success_rate_composite = (pct_bachelor_plus * 0.4 + pct_homeowner * 0.3 + 
+                             (median_income > 50000) * 30),
+    .groups = "drop"
+  ) |>
+  dplyr::arrange(dplyr::desc(success_rate_composite))
+```
+
+::: {.content-visible when-format="html"}
+```{r key-hypothesis-test-dt}
+#| label: key-hypothesis-test-dt
+
+DT::datatable(
+  hypothesis_test_results,
+  caption = "HIGH COMPLIANCE Group: Success Rates Across All Demographics",
+  options = base::list(pageLength = 15, scrollX = TRUE, dom = 'Bfrtip'),
+  rownames = FALSE
+) |>
+  DT::formatRound(
+    columns = base::c("median_income", "income_75th_percentile", "pct_bachelor_plus", 
+                     "pct_homeowner", "success_rate_composite"), 
+    digits = 2
+  )
+```
+:::
+
+::: {.content-visible unless-format="html"}
+```{r key-hypothesis-test-ft}
+#| label: key-hypothesis-test-ft
+
+flextable::flextable(hypothesis_test_results) |>
+  flextable::set_caption(caption = "HIGH COMPLIANCE Group: Success Rates Across All Demographics") |>
+  flextable::add_header_lines(values = "High Compliance Success Analysis") |>
+  flextable::color(i = 1, color = "blue", part = "header") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, align = "center", part = "header") |>
+  flextable::fontsize(i = 1, size = 14, part = "header") |>
+  flextable::bg(i = 1, bg = "white", part = "header") |>
+  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+  flextable::colformat_double(j = c("median_income", "income_75th_percentile", "pct_bachelor_plus", 
+                                    "pct_homeowner", "success_rate_composite"), digits = 2) |>
+  ftExtra::colformat_md() |>
+  flextable::autofit()
+```
+:::
+
+```{r hypothesis-variance}
+#| label: hypothesis-variance
+
+# Calculate the variance in success rates within high compliance group
+success_variance_high_compliance <- stats::var(hypothesis_test_results$success_rate_composite, na.rm = TRUE)
+
+base::cat(base::sprintf("\nVariance in success rates among HIGH COMPLIANCE individuals: %.2f\n", 
+            success_variance_high_compliance))
+base::cat("Lower variance suggests demographic factors matter less for high-compliance individuals.\n")
+```
+
+## Visualization Framework
+
+```{r visualization-framework}
+#| label: create-visualizations
+
+# Visualization 1: Success rates by compliance level, faceted by demographics
+success_by_compliance_plot <- simulated_census_data |>
+  dplyr::group_by(sowell_compliance_category, race_ethnicity_category) |>
+  dplyr::summarise(
+    median_income = stats::median(personal_income, na.rm = TRUE),
+    pct_bachelor = base::mean(bachelor_plus, na.rm = TRUE) * 100,
+    sample_size = dplyr::n(),
+    .groups = "drop"
+  ) |>
+  dplyr::filter(sample_size >= 50) |>
+  ggplot2::ggplot(ggplot2::aes(x = sowell_compliance_category, y = pct_bachelor, 
+                              fill = race_ethnicity_category)) +
+  ggplot2::geom_col(position = "dodge") +
+  ggplot2::facet_wrap(~race_ethnicity_category, scales = "free_y") +
+  ggplot2::labs(
+    title = "Bachelor's Degree Attainment by Sowell Compliance Level",
+    subtitle = "Across Different Racial/Ethnic Groups", 
+    x = "Sowell Framework Compliance Level",
+    y = "Percentage with Bachelor's Degree or Higher",
+    fill = "Race/Ethnicity"
+  )
+
+base::print(success_by_compliance_plot)
+
+# Visualization 2: Income distribution by compliance, controlling for poverty status
+income_distribution_plot <- simulated_census_data |>
+  ggplot2::ggplot(ggplot2::aes(x = sowell_compliance_category, y = personal_income,
+                              fill = poverty_status_category)) +
+  ggplot2::geom_boxplot() +
+  ggplot2::scale_y_log10(labels = scales::dollar) +
+  ggplot2::facet_wrap(~poverty_status_category, scales = "free_y") +
+  ggplot2::labs(
+    title = "Personal Income Distribution by Sowell Compliance",
+    subtitle = "Controlling for Initial Poverty Status",
+    x = "Sowell Framework Compliance Level", 
+    y = "Personal Income (Log Scale)",
+    fill = "Poverty Status"
+  )
+
+base::print(income_distribution_plot)
+```
+
+## Statistical Testing Framework
+
+```{r statistical-tests-data}
+#| label: statistical-testing-data
+
+# Test 1: Does Sowell compliance predict success better than demographics alone?
+
+# Model 1: Demographics only
+model_demographics_only <- stats::lm(
+  personal_income ~ race_ethnicity_category + poverty_status_category + 
+                   english_proficiency_category,
+  data = simulated_census_data
+)
+
+# Model 2: Sowell compliance only  
+model_sowell_only <- stats::lm(
+  personal_income ~ sowell_total_compliance_score,
+  data = simulated_census_data
+)
+
+# Model 3: Combined model
+model_combined <- stats::lm(
+  personal_income ~ sowell_total_compliance_score + race_ethnicity_category + 
+                   poverty_status_category + english_proficiency_category,
+  data = simulated_census_data
+)
+
+# Extract R-squared values
+r_squared_demographics <- base::summary(model_demographics_only)$r.squared
+r_squared_sowell <- base::summary(model_sowell_only)$r.squared  
+r_squared_combined <- base::summary(model_combined)$r.squared
+
+model_comparison_results <- tibble::tibble(
+  Model = base::c("Demographics Only", "Sowell Framework Only", "Combined Model"),
+  R_Squared = base::c(r_squared_demographics, r_squared_sowell, r_squared_combined),
+  Adjusted_R_Squared = base::c(
+    base::summary(model_demographics_only)$adj.r.squared,
+    base::summary(model_sowell_only)$adj.r.squared,
+    base::summary(model_combined)$adj.r.squared
+  )
+)
+```
+
+::: {.content-visible when-format="html"}
+```{r statistical-tests-dt}
+#| label: statistical-tests-dt
+
+DT::datatable(
+  model_comparison_results,
+  caption = "Model Comparison: Predictive Power of Different Frameworks",
+  options = base::list(pageLength = 10, scrollX = TRUE),
+  rownames = FALSE
+) |>
+  DT::formatRound(columns = base::c("R_Squared", "Adjusted_R_Squared"), digits = 4)
+```
+:::
+
+::: {.content-visible unless-format="html"}
+```{r statistical-tests-ft}
+#| label: statistical-tests-ft
+
+flextable::flextable(model_comparison_results) |>
+  flextable::set_caption(caption = "Model Comparison: Predictive Power of Different Frameworks") |>
+  flextable::add_header_lines(values = "Model Comparison Results") |>
+  flextable::color(i = 1, color = "blue", part = "header") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, align = "center", part = "header") |>
+  flextable::fontsize(i = 1, size = 14, part = "header") |>
+  flextable::bg(i = 1, bg = "white", part = "header") |>
+  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+  flextable::colformat_double(j = c("R_Squared", "Adjusted_R_Squared"), digits = 4) |>
+  ftExtra::colformat_md() |>
+  flextable::autofit()
+```
+:::
+
+```{r interaction-model}
+#| label: interaction-model
+
+# Test 2: Interaction effects - does Sowell compliance work differently across groups?
+interaction_model <- stats::lm(
+  personal_income ~ sowell_total_compliance_score * race_ethnicity_category * poverty_status_category,
+  data = simulated_census_data
+)
+
+base::cat("\nInteraction Model Summary (showing if Sowell framework works differently across groups):\n")
+base::print(base::summary(interaction_model)$coefficients[1:10, ])
+```
+
+## Implementation Roadmap
+
+### Phase 1: Current Geographic Focus
+1. **Data Collection**: Schertz-Cibolo-Universal City ISD area PUMS data
+2. **Baseline Analysis**: Establish Sowell compliance rates and success metrics
+3. **Initial Hypothesis Testing**: Does framework predict success across demographics?
+
+### Phase 2: Geographic Expansion  
+1. **San Antonio MSA Analysis**: Test in urban environment
+2. **Comparative Analysis**: Urban vs suburban patterns
+3. **Robustness Testing**: Do results hold across geographic contexts?
+
+### Phase 3: Variable Iteration
+1. **One-Variable Changes**: Systematically alter individual demographic controls
+2. **Sensitivity Analysis**: Where does the hypothesis break down?
+3. **Refinement**: Identify most critical framework components
+
+### Limitations and Considerations
+
+#### Data Limitations
+- **Attitude/Values Proxies**: Census data cannot directly measure family values or attitudes
+- **Causation vs Correlation**: Analysis shows associations, not causal relationships
+- **Temporal Sequencing**: Difficult to establish timing of marriage/children/education
+- **Selection Effects**: High-compliance individuals may differ in unobservable ways
+
+#### Methodological Considerations
+- **Sample Size Requirements**: Need adequate representation across demographic groups
+- **Geographic Specificity**: Results may vary significantly by local context
+- **Economic Cycle Effects**: Labor market conditions affect employment outcomes
+- **Measurement Error**: Self-reported data and proxy variables introduce uncertainty
+
+#### Ethical Research Notes
+- **Avoid Victim Blaming**: Results should inform policy, not blame individuals
+- **Structural Factors**: Individual choices occur within broader structural constraints
+- **Policy Implications**: Focus on enabling success rather than mandating behaviors
+
+## Next Steps for Implementation
+
+```{r next-steps-checklist-data}
+#| label: implementation-checklist-data
+
+next_steps_checklist <- tibble::tribble(
+  ~Step, ~Action_Required, ~Priority, ~Dependencies,
+  "1", "Obtain Census API key from census.gov", "High", "None",
+  "2", "Validate geographic PUMA codes for target areas", "High", "API access", 
+  "3", "Run Phase 1 data collection for SCUC ISD", "High", "Steps 1-2",
+  "4", "Refine variable definitions based on actual data availability", "Medium", "Step 3",
+  "5", "Implement statistical testing framework", "Medium", "Steps 3-4",
+  "6", "Expand to San Antonio MSA (Phase 2)", "Medium", "Phase 1 completion",
+  "7", "Create automated reporting pipeline", "Low", "Phases 1-2 validation",
+  "8", "Plan additional geographic areas for Phase 3", "Low", "Phases 1-2 success"
+)
+```
+
+::: {.content-visible when-format="html"}
+```{r next-steps-checklist-dt}
+#| label: next-steps-checklist-dt
+
+DT::datatable(
+  next_steps_checklist,
+  caption = "Implementation Checklist for Full Analysis",
+  options = base::list(pageLength = 10, scrollX = TRUE),
+  rownames = FALSE
+)
+```
+:::
+
+::: {.content-visible unless-format="html"}
+```{r next-steps-checklist-ft}
+#| label: next-steps-checklist-ft
+
+flextable::flextable(next_steps_checklist) |>
+  flextable::set_caption(caption = "Implementation Checklist for Full Analysis") |>
+  flextable::add_header_lines(values = "Implementation Checklist") |>
+  flextable::color(i = 1, color = "blue", part = "header") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, align = "center", part = "header") |>
+  flextable::fontsize(i = 1, size = 14, part = "header") |>
+  flextable::bg(i = 1, bg = "white", part = "header") |>
+  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+  ftExtra::colformat_md() |>
+  flextable::autofit()
+```
+:::
+
+---
+
+**Research Framework Summary**: This analysis framework provides a rigorous approach to testing whether Thomas Sowell's success framework (high school graduation + marriage before children + employment) predicts positive outcomes across demographic lines. The methodology uses individual-level Census data to control for race, poverty, language, and family structure while measuring behavioral compliance with success-associated behaviors.
+
+The key innovation is using Census microdata to create behavioral compliance scores that serve as proxies for family values/attitudes, then testing whether these predict success better than demographic characteristics alone.

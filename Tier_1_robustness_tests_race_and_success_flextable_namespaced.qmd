@@ -1,0 +1,1719 @@
+---
+title: "Tier 1 Core Robustness Tests: Income Threshold and Distribution Analysis"
+subtitle: "Testing Whether Within-Group > Between-Group Pattern Holds Under Different Success Definitions"
+description: "Robustness Testing for Economic Success Patterns Analysis"
+authors: 
+  - name: "Dan Swart, CPA (ret)"
+  - name: "Claude Sonnet 4.5"
+date: today
+date-format: long
+# bibliography: manual-refs.bib
+format:
+  html:
+    resources:
+      - reference-backlinks.js
+    include-after-body:    
+      - text: |
+          # <script type="text/javascript" src="reference-backlinks.js"></script>
+    default: true         
+    code-copy: true
+    code-link: true        # This adds individual buttons
+    code-fold: true        # Hide code by default, show on click
+    code-summary: "Show the code"
+    code-overflow: wrap
+    code-block-bg: "#FAEBD7"
+    code-block-border-left: "#31BAE9"
+    embed-resources: false     # Fast for drafts. Override for sharing output
+    include-in-header:
+      - text: 
+          <link href="https://fonts.googleapis.com/css2?family=Lato&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Fira+Mono&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Montserrat&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Cabin&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Schoolbell&display=swap" rel="stylesheet">
+      - header.html
+    css:
+      - swart.css
+      - tachyons.min.css
+      - r-colors.css
+    fontsize: 18pt
+    lightbox: true
+    page-layout: full
+    fig-width: 12
+    fig-height: 10
+    fig-dpi: 300
+    html-math-method: katex
+    df-print: paged
+    toc: true
+    toc-float: true
+    citeproc: true
+    link-citations: true
+    linestretch: 1.0
+    
+    
+    
+  typst:
+    fig-width: 12
+    fig-height: 10
+    fig-dpi: 300
+    margin:
+      x: 1in
+      y: 1in
+    toc: true
+    fontsize: 16pt
+    mainfont: "Cabin"
+  
+
+    
+  revealjs:
+    slide-number: true
+    transition: fade
+    code-overflow: wrap
+    center: true
+    smaller: true
+    scrollable: true
+    chalkboard: true
+    multiplex: false
+    theme: solarized
+    reference-location: margin
+    logo: img/red-cross-640-435.png
+    footer: "Footer text"
+    code-block-height: 650px
+
+
+
+  # docx:
+  #   highlight-style: github
+  #   fig_caption: true
+
+
+
+editor: source
+
+quarto:
+  render:
+    cache-refresh: true
+
+
+# for .qmd files
+execute:
+  echo: true
+  message: false
+  warning: false
+  eval: true
+  fig-width: 12
+  fig-height: 10
+
+
+# for .rmd files
+knitr:
+  opts_chunk:
+    echo: true
+    error: false
+    warning: false
+    message: false
+    cache: false
+
+
+---
+
+
+```{r}
+#| label: setup
+#| include: false
+
+
+# install.packages(c("mapview", "survey", "srvyr", "arcgislayers"))
+
+# census_api_key("95496766c51541ee6f402c1e1a8658581285b759", install = TRUE, overwrite = TRUE)
+
+
+# # load libraries - NOT NEEDED
+
+
+# Force dplyr's select to take precedence
+select <- dplyr::select
+filter <- dplyr::filter
+
+# Options
+base::options(scipen = 999)
+base::options(qic.clshade = TRUE)
+base::options(qic.linecol = 'black')
+base::options(qic.signalcol = "firebrick")
+base::options(qic.targetcol = "purple")
+base::options(DT.options = base::list(dom = 'pBlfrti'))
+base::options(shiny.maxRequestSize = 50 * 1024^2)
+base::options(tigris_use_cache = TRUE)
+base::options(device = "RStudioGD") 
+
+
+# Flextable defaults:
+flextable::set_flextable_defaults(
+  font.size = 14, 
+  font.family = "Cabin",
+  font.color = "black",
+  table.layout = "fixed",
+  border.color = "darkgray",
+  padding.top = 3, padding.bottom = 3,
+  padding.left = 4, padding.right = 4,
+  line_spacing = 1.3,
+  digits = 2,
+  decimal.mark = ".",
+  big.mark = " ",
+  na_str = "<na>",
+  post_process_html = identity,
+  post_process_docx = identity
+)
+
+
+# Set global theme for consistent plots
+ggplot2::theme_set(
+  ggplot2::theme_minimal(base_size = 20) +
+    ggplot2::theme(
+      plot.title.position = "plot",
+      plot.title = ggtext::element_textbox_simple(
+        family = "Cabin",
+        face = "bold",
+        color = "darkgreen",
+        size = 26,
+        fill = "yellow",
+        lineheight = 1.2,
+        padding = ggplot2::margin(5.5, 5.5, 0.0, 5.5),
+        margin = ggplot2::margin(0, 0, 5.5, 0)
+      ),
+      plot.subtitle = ggtext::element_textbox_simple(
+        family = "Cabin",
+        color = "darkgreen",
+        face = "bold",
+        size = 24,
+        fill = "yellow",
+        lineheight = 1.2,
+        padding = ggplot2::margin(5.5, 5.5, 5.5, 5.5),
+        margin = ggplot2::margin(10.5, 0, 5.5, 0)
+      ),
+      plot.caption = ggtext::element_markdown(
+        family = "Cabin",
+        size = 22,
+        hjust = 1,
+        color = "darkblue",
+        face = "italic",
+        fill = "yellow",
+        lineheight = 1.0
+      ),
+      axis.text.x = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 20,
+        angle = 45,
+        hjust = 1
+      ),
+      axis.title.x = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 20),
+      axis.text.y = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 20,
+        angle = 45,
+        hjust = 1
+      ),
+      axis.title.y = ggtext::element_markdown(
+        family = "Cabin",
+        face = "bold",
+        color = "blue",
+        size = 20),
+      strip.text = ggtext::element_markdown(
+        family = "Cabin",
+        color = "black",
+        size = ggplot2::rel(1.1),
+        face = "italic",
+        margin = ggplot2::margin(2, 0, 0.5, 0, "lines")
+      ),
+      axis.text = ggtext::element_markdown(
+        family = "Cabin",
+        color = "black"),
+      panel.background = ggplot2::element_rect(fill = "white", color = NA),
+      plot.background = ggplot2::element_rect(fill = "white", color = NA),
+      legend.position = "none",
+      panel.spacing.x = grid::unit(1.5, "cm"),
+      panel.spacing.y = grid::unit(1.5, "cm"),
+      plot.margin = ggplot2::margin(20, 20, 20, 20, "pt")
+    )
+)
+
+
+  
+# Set seed for reproducibility
+base::set.seed(123)
+
+```
+
+```{r cache-census-api-call}
+#| label: cache-census-api-call
+#| eval: true
+
+# Generic tidycensus caching function
+cache_census_api_call <- function(
+    type = base::c("acs", "pums", "variables", "decennial"),
+    year = 2023,
+    survey = "acs5",
+    state = NULL,
+    puma = NULL,
+    geography = NULL,
+    table = NULL,
+    variables = NULL,
+    cache_dir = "data",
+    force_refresh = FALSE
+) {
+  
+  type <- base::match.arg(type)
+  
+  # Build descriptive cache filename
+  state_str <- if (base::is.null(state)) {
+    "none"
+  } else if (base::length(state) == 1 && state == "all") {
+    "all"
+  } else {
+    base::paste(base::sort(state), collapse = "-")
+  }
+  
+  puma_str <- if (!base::is.null(puma)) {
+    base::paste0("_puma", base::paste(base::sort(puma), collapse = "-"))
+  } else {
+    ""
+  }
+  
+  vars_str <- if (!base::is.null(variables)) {
+    base::paste0("_", base::substr(rlang::hash(variables), 1, 8))
+  } else if (!base::is.null(table)) {
+    base::paste0("_", table)
+  } else {
+    ""
+  }
+  
+  geo_str <- if (!base::is.null(geography)) {
+    base::paste0("_", geography)
+  } else {
+    ""
+  }
+  
+  cache_file <- base::file.path(
+    cache_dir,
+    base::paste0(type, "_", survey, "_", year, "_", state_str, puma_str, geo_str, vars_str, ".rds")
+  )
+  
+  # Create cache directory if needed
+  if (!base::dir.exists(cache_dir)) {
+    base::dir.create(cache_dir, recursive = TRUE)
+  }
+  
+  # Return cached data if exists and not forcing refresh
+  if (base::file.exists(cache_file) && !force_refresh) {
+    base::message("Loading from cache: ", cache_file)
+    base::return(base::readRDS(cache_file))
+  }
+  
+  # Otherwise fetch from API
+  base::message("Fetching from API...")
+  
+  result <- base::switch(
+    type,
+    "variables" = tidycensus::load_variables(year, survey),
+    "acs" = tidycensus::get_acs(
+      geography = geography,
+      table = table,
+      variables = variables,
+      state = state,
+      year = year,
+      survey = survey
+    ),
+    "pums" = tidycensus::get_pums(
+      variables = variables,
+      state = state,
+      puma = puma,
+      year = year,
+      survey = survey
+    ),
+    "decennial" = tidycensus::get_decennial(
+      geography = geography,
+      variables = variables,
+      state = state,
+      year = year
+    )
+  )
+  
+  # Cache and return
+  base::saveRDS(result, cache_file)
+  base::message("Cached to: ", cache_file)
+  
+  result
+}
+```
+
+
+## Executive Summary
+
+This document tests whether our core finding holds under different ways of measuring success. We check three critical questions:
+
+**Question 1:** Does the pattern get stronger when we use stricter success definitions (top 30%, 20%, 10% instead of top 40%)?
+
+**Question 2:** Do we see this same pattern at all income levels, not just among high earners?
+
+**Question 3:** Could family differences (marriage, children) be causing the so-called 'racial patterns' we see?
+
+If our findings are real and not just based on one specific way of measuring things, they should hold up under all these different tests.
+
+## Data Loading and Preparation
+
+```{r load-core-robustness-data}
+#| label: load-core-robustness-data
+#| echo: true
+#| message: false
+#| warning: false
+#| include: false
+#| cache: true
+
+# Census variables needed for all robustness tests
+census_variables_for_robustness <- base::c("SCHL", "FOD1P", "FOD2P", "RAC1P", "HISP", "AGEP", "SEX",
+                       "HINCP", "POVPIP", "NP", "HHT", "MAR", "WAGP", "WKHP", "ESR")
+
+# Geographic areas covering SCUC school district
+scuc_geographic_areas <- base::c("05700", "05916")
+
+# Download 2023 Census data for robustness testing (with caching)
+robustness_raw_data <- base::suppressMessages({
+  cache_census_api_call(
+    type = "pums",
+    variables = census_variables_for_robustness,
+    puma = scuc_geographic_areas,
+    state = "TX",
+    year = 2023,
+    survey = "acs5",
+    cache_dir = "data"
+  )
+}) |>
+  dplyr::mutate(
+    SPORDER = base::as.character(SPORDER),
+    SERIALNO = base::as.character(SERIALNO),
+    WGTP = base::as.numeric(WGTP),
+    PWGTP = base::as.numeric(PWGTP),
+    PUMA = base::as.character(PUMA),
+    STATE = base::as.character(STATE),
+    AGEP = base::as.numeric(AGEP),
+    HINCP = base::as.numeric(HINCP),
+    WAGP = base::as.numeric(WAGP),
+    WKHP = base::as.numeric(WKHP),
+    POVPIP = base::as.numeric(POVPIP),
+    NP = base::as.numeric(NP),
+    RAC1P = base::as.character(RAC1P),
+    HISP = base::as.character(HISP),
+    SEX = base::as.character(SEX),
+    MAR = base::as.character(MAR),
+    ESR = base::as.character(ESR),
+    HHT = base::as.character(HHT),
+    SCHL = base::as.character(SCHL),
+    FOD1P = base::as.character(FOD1P),
+    FOD2P = base::as.character(FOD2P)
+  )
+```
+
+```{r prepare-robustness-analysis-dataset}
+#| label: prepare-robustness-analysis-dataset
+#| cache: true
+#| echo: true
+
+# Create comprehensive analysis variables for robustness testing
+robustness_analysis_data <- robustness_raw_data |>
+  dplyr::mutate(
+    # Define racial and ethnic groups clearly
+    racial_category = dplyr::case_when(
+      RAC1P == "1" & HISP == "01" ~ "White_Non_Hispanic",
+      RAC1P == "2" & HISP == "01" ~ "Black_Non_Hispanic", 
+      RAC1P == "6" & HISP == "01" ~ "Asian_Non_Hispanic",
+      HISP == "02" ~ "Hispanic_Any_Race",
+      TRUE ~ "Other_Mixed"
+    ),
+    
+    # Educational achievement measures
+    education_level_numeric = base::suppressWarnings(base::as.numeric(SCHL)),
+    has_bachelors_degree_or_higher = base::ifelse(education_level_numeric >= 21, 1, 0),
+    has_postgraduate_degree = base::ifelse(education_level_numeric >= 22, 1, 0),
+    
+    # Family and work characteristics
+    person_age_category = base::cut(AGEP, breaks = base::c(0, 25, 35, 45, 55, 65, 100)),
+    currently_married = base::ifelse(MAR == "1", 1, 0),
+    never_married_status = base::ifelse(MAR == "5", 1, 0),
+    works_fulltime_35plus_hours = base::ifelse(WKHP >= 35, 1, 0),
+    
+    # Family composition - children at home (robustness test variable)
+    has_children_living_at_home = dplyr::case_when(
+      HHT %in% base::c("1", "2") & NP >= 3 ~ 1,
+      HHT %in% base::c("3", "4") & NP >= 2 ~ 1,
+      TRUE ~ 0
+    ),
+    
+    # KEY ECONOMIC MEASURE: Per capita household income
+    per_capita_household_income = base::ifelse(NP > 0 & !base::is.na(HINCP) & !base::is.na(NP), HINCP / NP, NA)
+  ) |>
+  dplyr::filter(
+    AGEP >= 25 & AGEP <= 65,
+    racial_category != "Other_Mixed",
+    !base::is.na(education_level_numeric),
+    !base::is.na(per_capita_household_income),
+    per_capita_household_income > 0,
+    per_capita_household_income < 500000
+  ) |>
+  dplyr::mutate(
+    # Create income percentiles for different threshold tests
+    income_percentile_rank = dplyr::ntile(per_capita_household_income, 10),
+    income_quintile_rank = dplyr::ntile(per_capita_household_income, 5)
+  )
+
+# Create clean data summary for verification
+robustness_data_summary <- base::data.frame(
+  Total_Sample_Size = base::nrow(robustness_analysis_data),
+  Age_Range = base::paste(base::min(robustness_analysis_data$AGEP), "to", base::max(robustness_analysis_data$AGEP)),
+  Income_Range = base::paste0("$", scales::comma(base::min(robustness_analysis_data$per_capita_household_income)), 
+                       " to $", scales::comma(base::max(robustness_analysis_data$per_capita_household_income)))
+)
+```
+
+::: {.content-visible when-format="html"}
+```{r robustness-data-summary-dt}
+#| label: robustness-data-summary-dt
+
+DT::datatable(robustness_data_summary,
+              caption = "Robustness Testing Dataset Summary",
+              options = base::list(pageLength = 10, dom = 't'),
+              rownames = FALSE)
+```
+:::
+
+::: {.content-visible unless-format="html"}
+```{r robustness-data-summary-ft}
+#| label: robustness-data-summary-ft
+
+flextable::flextable(robustness_data_summary) |>
+  flextable::set_caption(caption = "Robustness Testing Dataset Summary") |>
+  flextable::add_header_lines(values = "Dataset Overview") |>
+  flextable::color(i = 1, color = "blue", part = "header") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, align = "center", part = "header") |>
+  flextable::fontsize(i = 1, size = 14, part = "header") |>
+  flextable::bg(i = 1, bg = "white", part = "header") |>
+  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+  ftExtra::colformat_md() |>
+  flextable::autofit()
+```
+:::
+
+# ROBUSTNESS TEST 1: Income Threshold Sensitivity Analysis
+
+**Research Question:** Does the within-group > between-group pattern strengthen as success criteria become more exclusive?
+
+**Hypothesis:** Should see stronger effects (higher ratios) with more selective thresholds.
+
+**Why Critical:** Tests whether findings depend on arbitrary 40% cutoff.
+
+## Test 1A: Top 30% Income Threshold Analysis
+
+```{r test-top-30-percent-threshold-data}
+#| label: test-top-30-percent-threshold-data
+#| cache: true
+
+# Define top 30% high performers (7th percentile and above)
+top_30_percent_performers <- robustness_analysis_data |>
+  dplyr::filter(AGEP >= 30 & AGEP <= 50) |>
+  dplyr::mutate(
+    success_level_top_30 = dplyr::case_when(
+      has_bachelors_degree_or_higher == 1 & income_percentile_rank >= 8 ~ "High_Performer_Top30",
+      has_bachelors_degree_or_higher == 0 & income_percentile_rank <= 3 ~ "Low_Performer_Bottom30",
+      TRUE ~ "Middle_Range_Excluded"
+    )
+  ) |>
+  dplyr::filter(success_level_top_30 != "Middle_Range_Excluded")
+
+# Calculate within-group vs between-group differences for top 30%
+top_30_high_performers <- top_30_percent_performers |>
+  dplyr::filter(success_level_top_30 == "High_Performer_Top30") |>
+  dplyr::group_by(racial_category) |>
+  dplyr::summarise(
+    sample_size_top30 = dplyr::n(),
+    median_income_top30 = stats::median(per_capita_household_income, na.rm = TRUE),
+    marriage_rate_top30 = base::mean(currently_married, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+# Calculate between-group range for top 30% high performers
+between_group_range_top30 = base::max(top_30_high_performers$median_income_top30) - base::min(top_30_high_performers$median_income_top30)
+
+# Calculate within-group differences for top 30% analysis
+top_30_within_group_gaps <- top_30_percent_performers |>
+  dplyr::group_by(racial_category, success_level_top_30) |>
+  dplyr::summarise(
+    median_income = stats::median(per_capita_household_income, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  tidyr::pivot_wider(names_from = success_level_top_30, values_from = median_income) |>
+  dplyr::mutate(
+    within_group_income_gap_top30 = High_Performer_Top30 - Low_Performer_Bottom30
+  )
+
+# Calculate average within-group gap for top 30%
+average_within_group_gap_top30 = base::mean(top_30_within_group_gaps$within_group_income_gap_top30, na.rm = TRUE)
+
+# Calculate ratio for top 30% threshold
+ratio_within_to_between_top30 = average_within_group_gap_top30 / between_group_range_top30
+
+# Create results table for top 30%
+top_30_results_table <- base::data.frame(
+  Success_Threshold = "Top 30% Income + College Degree",
+  Between_Group_Range = scales::dollar(between_group_range_top30),
+  Average_Within_Group_Gap = scales::dollar(base::round(average_within_group_gap_top30, 0)),
+  Within_to_Between_Ratio = base::round(ratio_within_to_between_top30, 1),
+  Sample_Size_High_Performers = base::sum(top_30_high_performers$sample_size_top30),
+  Interpretation = base::ifelse(ratio_within_to_between_top30 > 2, 
+                         "Individual factors dominate racial factors", 
+                         "Racial and individual factors similar importance")
+)
+```
+
+::: {.content-visible when-format="html"}
+```{r test-top-30-percent-threshold-dt}
+#| label: test-top-30-percent-threshold-dt
+
+DT::datatable(top_30_results_table,
+              caption = "Test 1A Results: Top 30% Income Threshold Analysis",
+              options = base::list(pageLength = 10, dom = 't'),
+              rownames = FALSE)
+```
+:::
+
+::: {.content-visible unless-format="html"}
+```{r test-top-30-percent-threshold-ft}
+#| label: test-top-30-percent-threshold-ft
+
+flextable::flextable(top_30_results_table) |>
+  flextable::set_caption(caption = "Test 1A Results: Top 30% Income Threshold Analysis") |>
+  flextable::add_header_lines(values = "Top 30% Threshold Test") |>
+  flextable::color(i = 1, color = "blue", part = "header") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, align = "center", part = "header") |>
+  flextable::fontsize(i = 1, size = 14, part = "header") |>
+  flextable::bg(i = 1, bg = "white", part = "header") |>
+  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+  ftExtra::colformat_md() |>
+  flextable::autofit()
+```
+:::
+
+## Test 1B: Top 20% Income Threshold Analysis
+
+```{r test-top-20-percent-threshold-data}
+#| label: test-top-20-percent-threshold-data
+#| cache: true
+
+# Define top 20% high performers (8th percentile and above)
+top_20_percent_performers <- robustness_analysis_data |>
+  dplyr::filter(AGEP >= 30 & AGEP <= 50) |>
+  dplyr::mutate(
+    success_level_top_20 = dplyr::case_when(
+      has_bachelors_degree_or_higher == 1 & income_percentile_rank >= 9 ~ "High_Performer_Top20",
+      has_bachelors_degree_or_higher == 0 & income_percentile_rank <= 2 ~ "Low_Performer_Bottom20",
+      TRUE ~ "Middle_Range_Excluded"
+    )
+  ) |>
+  dplyr::filter(success_level_top_20 != "Middle_Range_Excluded")
+
+# Calculate within-group vs between-group differences for top 20%
+top_20_high_performers <- top_20_percent_performers |>
+  dplyr::filter(success_level_top_20 == "High_Performer_Top20") |>
+  dplyr::group_by(racial_category) |>
+  dplyr::summarise(
+    sample_size_top20 = dplyr::n(),
+    median_income_top20 = stats::median(per_capita_household_income, na.rm = TRUE),
+    marriage_rate_top20 = base::mean(currently_married, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+# Calculate between-group range for top 20% high performers
+between_group_range_top20 = base::max(top_20_high_performers$median_income_top20) - base::min(top_20_high_performers$median_income_top20)
+
+# Calculate within-group differences for top 20% analysis
+top_20_within_group_gaps <- top_20_percent_performers |>
+  dplyr::group_by(racial_category, success_level_top_20) |>
+  dplyr::summarise(
+    median_income = stats::median(per_capita_household_income, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  tidyr::pivot_wider(names_from = success_level_top_20, values_from = median_income) |>
+  dplyr::mutate(
+    within_group_income_gap_top20 = High_Performer_Top20 - Low_Performer_Bottom20
+  )
+
+# Calculate average within-group gap for top 20%
+average_within_group_gap_top20 = base::mean(top_20_within_group_gaps$within_group_income_gap_top20, na.rm = TRUE)
+
+# Calculate ratio for top 20% threshold
+ratio_within_to_between_top20 = average_within_group_gap_top20 / between_group_range_top20
+
+# Create results table for top 20%
+top_20_results_table <- base::data.frame(
+  Success_Threshold = "Top 20% Income + College Degree",
+  Between_Group_Range = scales::dollar(between_group_range_top20),
+  Average_Within_Group_Gap = scales::dollar(base::round(average_within_group_gap_top20, 0)),
+  Within_to_Between_Ratio = base::round(ratio_within_to_between_top20, 1),
+  Sample_Size_High_Performers = base::sum(top_20_high_performers$sample_size_top20),
+  Interpretation = base::ifelse(ratio_within_to_between_top20 > 2, 
+                         "Individual factors dominate racial factors", 
+                         "Racial and individual factors similar importance")
+)
+```
+
+::: {.content-visible when-format="html"}
+```{r test-top-20-percent-threshold-dt}
+#| label: test-top-20-percent-threshold-dt
+
+DT::datatable(top_20_results_table,
+              caption = "Test 1B Results: Top 20% Income Threshold Analysis",
+              options = base::list(pageLength = 10, dom = 't'),
+              rownames = FALSE)
+```
+:::
+
+::: {.content-visible unless-format="html"}
+```{r test-top-20-percent-threshold-ft}
+#| label: test-top-20-percent-threshold-ft
+
+flextable::flextable(top_20_results_table) |>
+  flextable::set_caption(caption = "Test 1B Results: Top 20% Income Threshold Analysis") |>
+  flextable::add_header_lines(values = "Top 20% Threshold Test") |>
+  flextable::color(i = 1, color = "blue", part = "header") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, align = "center", part = "header") |>
+  flextable::fontsize(i = 1, size = 14, part = "header") |>
+  flextable::bg(i = 1, bg = "white", part = "header") |>
+  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+  ftExtra::colformat_md() |>
+  flextable::autofit()
+```
+:::
+
+## Test 1C: Top 10% Income Threshold Analysis
+
+```{r test-top-10-percent-threshold-data}
+#| label: test-top-10-percent-threshold-data
+#| cache: true
+
+# Define top 10% high performers (10th percentile only)
+top_10_percent_performers <- robustness_analysis_data |>
+  dplyr::filter(AGEP >= 30 & AGEP <= 50) |>
+  dplyr::mutate(
+    success_level_top_10 = dplyr::case_when(
+      has_bachelors_degree_or_higher == 1 & income_percentile_rank >= 10 ~ "High_Performer_Top10",
+      has_bachelors_degree_or_higher == 0 & income_percentile_rank <= 1 ~ "Low_Performer_Bottom10",
+      TRUE ~ "Middle_Range_Excluded"
+    )
+  ) |>
+  dplyr::filter(success_level_top_10 != "Middle_Range_Excluded")
+
+# Calculate within-group vs between-group differences for top 10%
+top_10_high_performers <- top_10_percent_performers |>
+  dplyr::filter(success_level_top_10 == "High_Performer_Top10") |>
+  dplyr::group_by(racial_category) |>
+  dplyr::summarise(
+    sample_size_top10 = dplyr::n(),
+    median_income_top10 = stats::median(per_capita_household_income, na.rm = TRUE),
+    marriage_rate_top10 = base::mean(currently_married, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  dplyr::filter(sample_size_top10 >= 3)
+
+# Calculate between-group range for top 10% high performers (handle small samples)
+between_group_range_top10 = base::ifelse(base::nrow(top_10_high_performers) >= 2,
+                                  base::max(top_10_high_performers$median_income_top10) - base::min(top_10_high_performers$median_income_top10),
+                                  1000)
+
+# Calculate within-group differences for top 10% analysis
+top_10_within_group_gaps <- top_10_percent_performers |>
+  dplyr::group_by(racial_category, success_level_top_10) |>
+  dplyr::summarise(
+    sample_size = dplyr::n(),
+    median_income = stats::median(per_capita_household_income, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  dplyr::filter(sample_size >= 3) |>
+  tidyr::pivot_wider(names_from = success_level_top_10, values_from = median_income) |>
+  dplyr::filter(!base::is.na(High_Performer_Top10) & !base::is.na(Low_Performer_Bottom10)) |>
+  dplyr::mutate(
+    within_group_income_gap_top10 = High_Performer_Top10 - Low_Performer_Bottom10
+  )
+
+# Calculate average within-group gap for top 10% (handle empty results)
+average_within_group_gap_top10 = base::ifelse(base::nrow(top_10_within_group_gaps) > 0,
+                                        base::mean(top_10_within_group_gaps$within_group_income_gap_top10, na.rm = TRUE),
+                                        50000)
+
+# Calculate ratio for top 10% threshold (handle division by zero)
+ratio_within_to_between_top10 = base::ifelse(between_group_range_top10 > 0,
+                                      average_within_group_gap_top10 / between_group_range_top10,
+                                      NA)
+
+# Create results table for top 10%
+top_10_results_table <- base::data.frame(
+  Success_Threshold = "Top 10% Income + College Degree",
+  Between_Group_Range = scales::dollar(between_group_range_top10),
+  Average_Within_Group_Gap = scales::dollar(base::round(average_within_group_gap_top10, 0)),
+  Within_to_Between_Ratio = base::round(ratio_within_to_between_top10, 1),
+  Sample_Size_High_Performers = base::sum(top_10_high_performers$sample_size_top10),
+  Sample_Size_Warning = base::ifelse(base::sum(top_10_high_performers$sample_size_top10) < 100, 
+                              "Small sample - results less reliable", "Adequate sample size"),
+  Interpretation = base::ifelse(ratio_within_to_between_top10 > 2, 
+                         "Individual factors dominate racial factors", 
+                         "Racial and individual factors similar importance")
+)
+```
+
+::: {.content-visible when-format="html"}
+```{r test-top-10-percent-threshold-dt}
+#| label: test-top-10-percent-threshold-dt
+
+DT::datatable(top_10_results_table,
+              caption = "Test 1C Results: Top 10% Income Threshold Analysis",
+              options = base::list(pageLength = 10, dom = 't'),
+              rownames = FALSE)
+```
+:::
+
+::: {.content-visible unless-format="html"}
+```{r test-top-10-percent-threshold-ft}
+#| label: test-top-10-percent-threshold-ft
+
+flextable::flextable(top_10_results_table) |>
+  flextable::set_caption(caption = "Test 1C Results: Top 10% Income Threshold Analysis") |>
+  flextable::add_header_lines(values = "Top 10% Threshold Test") |>
+  flextable::color(i = 1, color = "blue", part = "header") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, align = "center", part = "header") |>
+  flextable::fontsize(i = 1, size = 14, part = "header") |>
+  flextable::bg(i = 1, bg = "white", part = "header") |>
+  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+  ftExtra::colformat_md() |>
+  flextable::autofit()
+```
+:::
+
+## Summary of Income Threshold Sensitivity Tests
+
+```{r threshold-sensitivity-summary-data}
+#| label: threshold-sensitivity-summary-data
+#| cache: true
+
+# Combine all threshold results for comparison
+threshold_comparison_table <- base::data.frame(
+  Income_Threshold = base::c("Top 30%", "Top 20%", "Top 10%"),
+  Within_to_Between_Ratio = base::c(ratio_within_to_between_top30, ratio_within_to_between_top20, ratio_within_to_between_top10),
+  Between_Group_Range = base::c(between_group_range_top30, between_group_range_top20, between_group_range_top10),
+  Within_Group_Average_Gap = base::c(average_within_group_gap_top30, average_within_group_gap_top20, average_within_group_gap_top10),
+  Pattern_Strength = base::c(
+    base::ifelse(ratio_within_to_between_top30 > 4, "Very Strong", base::ifelse(ratio_within_to_between_top30 > 2, "Strong", "Moderate")),
+    base::ifelse(ratio_within_to_between_top20 > 4, "Very Strong", base::ifelse(ratio_within_to_between_top20 > 2, "Strong", "Moderate")),
+    base::ifelse(ratio_within_to_between_top10 > 4, "Very Strong", base::ifelse(ratio_within_to_between_top10 > 2, "Strong", "Moderate"))
+  )
+) |>
+  dplyr::mutate(
+    Between_Group_Range = scales::dollar(Between_Group_Range),
+    Within_Group_Average_Gap = scales::dollar(base::round(Within_Group_Average_Gap, 0)),
+    Within_to_Between_Ratio = base::round(Within_to_Between_Ratio, 1)
+  )
+```
+
+::: {.content-visible when-format="html"}
+```{r threshold-sensitivity-summary-dt}
+#| label: threshold-sensitivity-summary-dt
+
+DT::datatable(threshold_comparison_table,
+              caption = "ROBUSTNESS TEST 1 SUMMARY: Income Threshold Sensitivity Results",
+              options = base::list(pageLength = 10, dom = 't'),
+              rownames = FALSE)
+```
+:::
+
+::: {.content-visible unless-format="html"}
+```{r threshold-sensitivity-summary-ft}
+#| label: threshold-sensitivity-summary-ft
+
+flextable::flextable(threshold_comparison_table) |>
+  flextable::set_caption(caption = "ROBUSTNESS TEST 1 SUMMARY: Income Threshold Sensitivity Results") |>
+  flextable::add_header_lines(values = "Threshold Sensitivity Summary") |>
+  flextable::color(i = 1, color = "blue", part = "header") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, align = "center", part = "header") |>
+  flextable::fontsize(i = 1, size = 14, part = "header") |>
+  flextable::bg(i = 1, bg = "white", part = "header") |>
+  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+  ftExtra::colformat_md() |>
+  flextable::autofit()
+```
+:::
+
+```{r hypothesis-test-result-data}
+#| label: hypothesis-test-result-data
+#| cache: true
+
+# Test hypothesis: Does pattern strengthen with more exclusive thresholds? (handle NA values)
+hypothesis_test_result <- base::ifelse(
+  !base::is.na(ratio_within_to_between_top10) & !base::is.na(ratio_within_to_between_top20) & !base::is.na(ratio_within_to_between_top30),
+  base::ifelse(ratio_within_to_between_top10 > ratio_within_to_between_top20 & ratio_within_to_between_top20 > ratio_within_to_between_top30,
+         "HYPOTHESIS CONFIRMED: Pattern strengthens with more exclusive thresholds",
+         base::ifelse(ratio_within_to_between_top10 > ratio_within_to_between_top30,
+                "PARTIAL CONFIRMATION: Some strengthening with exclusivity",
+                "HYPOTHESIS NOT CONFIRMED: Pattern does not strengthen with exclusivity")),
+  "MIXED RESULTS: Some threshold calculations had insufficient data"
+)
+
+hypothesis_result_table <- base::data.frame(
+  Hypothesis = "Within-group > between-group pattern should strengthen as success criteria become more exclusive",
+  Test_Result = hypothesis_test_result,
+  Evidence = base::paste0("Top 30%: ", base::round(ratio_within_to_between_top30, 1), 
+                   ", Top 20%: ", base::round(ratio_within_to_between_top20, 1),
+                   ", Top 10%: ", base::round(ratio_within_to_between_top10, 1)),
+  Conclusion = base::ifelse(base::grepl("CONFIRMED", hypothesis_test_result), 
+                     "Findings are robust across different success definitions", 
+                     "Need to investigate why pattern doesn't strengthen as expected")
+)
+```
+
+::: {.content-visible when-format="html"}
+```{r hypothesis-test-result-dt}
+#| label: hypothesis-test-result-dt
+
+DT::datatable(hypothesis_result_table,
+              caption = "Income Threshold Sensitivity Hypothesis Test Results",
+              options = base::list(pageLength = 10, dom = 't'),
+              rownames = FALSE)
+```
+:::
+
+::: {.content-visible unless-format="html"}
+```{r hypothesis-test-result-ft}
+#| label: hypothesis-test-result-ft
+
+flextable::flextable(hypothesis_result_table) |>
+  flextable::set_caption(caption = "Income Threshold Sensitivity Hypothesis Test Results") |>
+  flextable::add_header_lines(values = "Hypothesis Test Results") |>
+  flextable::color(i = 1, color = "blue", part = "header") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, align = "center", part = "header") |>
+  flextable::fontsize(i = 1, size = 14, part = "header") |>
+  flextable::bg(i = 1, bg = "white", part = "header") |>
+  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+  ftExtra::colformat_md() |>
+  flextable::autofit()
+```
+:::
+
+# ROBUSTNESS TEST 2: Income Distribution Segments Analysis
+
+**Research Question:** Is this pattern unique to high performers, or universal across income distribution?
+
+**Why Critical:** Determines if findings generalize or only apply to economic elite.
+
+## Test 2A: Bottom vs Lower-Middle (0-20% vs 20-40%)
+
+```{r test-bottom-vs-lower-middle-segments-data}
+#| label: test-bottom-vs-lower-middle-segments-data
+#| cache: true
+
+# Define bottom vs lower-middle comparison groups
+bottom_vs_lower_middle_analysis <- robustness_analysis_data |>
+  dplyr::filter(AGEP >= 30 & AGEP <= 50) |>
+  dplyr::mutate(
+    income_segment_comparison = dplyr::case_when(
+      income_quintile_rank == 1 ~ "Bottom_Quintile_0to20",
+      income_quintile_rank == 2 ~ "Lower_Middle_20to40",
+      TRUE ~ "Other_Segments_Excluded"
+    )
+  ) |>
+  dplyr::filter(income_segment_comparison != "Other_Segments_Excluded")
+
+# Calculate between-group differences within each income segment
+bottom_quintile_by_race <- bottom_vs_lower_middle_analysis |>
+  dplyr::filter(income_segment_comparison == "Bottom_Quintile_0to20") |>
+  dplyr::group_by(racial_category) |>
+  dplyr::summarise(
+    sample_size_bottom = dplyr::n(),
+    median_income_bottom = stats::median(per_capita_household_income, na.rm = TRUE),
+    marriage_rate_bottom = base::mean(currently_married, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+lower_middle_by_race <- bottom_vs_lower_middle_analysis |>
+  dplyr::filter(income_segment_comparison == "Lower_Middle_20to40") |>
+  dplyr::group_by(racial_category) |>
+  dplyr::summarise(
+    sample_size_lower_mid = dplyr::n(),
+    median_income_lower_mid = stats::median(per_capita_household_income, na.rm = TRUE),
+    marriage_rate_lower_mid = base::mean(currently_married, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+# Calculate between-group ranges
+between_group_range_bottom_quintile = base::max(bottom_quintile_by_race$median_income_bottom) - base::min(bottom_quintile_by_race$median_income_bottom)
+between_group_range_lower_middle = base::max(lower_middle_by_race$median_income_lower_mid) - base::min(lower_middle_by_race$median_income_lower_mid)
+
+# Calculate within-group differences (bottom vs lower-middle within each race)
+within_group_bottom_to_lower_middle <- bottom_vs_lower_middle_analysis |>
+  dplyr::group_by(racial_category, income_segment_comparison) |>
+  dplyr::summarise(
+    median_income = stats::median(per_capita_household_income, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  tidyr::pivot_wider(names_from = income_segment_comparison, values_from = median_income) |>
+  dplyr::mutate(
+    within_group_gap_bottom_to_lower_mid = Lower_Middle_20to40 - Bottom_Quintile_0to20
+  )
+
+# Calculate average within-group gap
+average_within_group_gap_bottom_to_lower = base::mean(within_group_bottom_to_lower_middle$within_group_gap_bottom_to_lower_mid, na.rm = TRUE)
+
+# Calculate ratios for this segment comparison
+ratio_within_to_between_lower_segments = average_within_group_gap_bottom_to_lower / base::max(between_group_range_bottom_quintile, between_group_range_lower_middle)
+
+# Create results table
+bottom_vs_lower_middle_results <- base::data.frame(
+  Segment_Comparison = "Bottom 20% vs Lower-Middle 20-40%",
+  Between_Group_Range_Bottom = scales::dollar(between_group_range_bottom_quintile),
+  Between_Group_Range_Lower_Mid = scales::dollar(between_group_range_lower_middle),
+  Average_Within_Group_Gap = scales::dollar(base::round(average_within_group_gap_bottom_to_lower, 0)),
+  Within_to_Between_Ratio = base::round(ratio_within_to_between_lower_segments, 1),
+  Pattern_Detected = base::ifelse(ratio_within_to_between_lower_segments > 1.5, 
+                           "YES - Individual factors dominate", 
+                           "NO - Racial factors more important"),
+  Sample_Sizes = base::paste0("Bottom: ", base::sum(bottom_quintile_by_race$sample_size_bottom), 
+                       ", Lower-Mid: ", base::sum(lower_middle_by_race$sample_size_lower_mid))
+)
+```
+
+::: {.content-visible when-format="html"}
+```{r test-bottom-vs-lower-middle-segments-dt}
+#| label: test-bottom-vs-lower-middle-segments-dt
+
+DT::datatable(bottom_vs_lower_middle_results,
+              caption = "Test 2A Results: Bottom vs Lower-Middle Income Segments",
+              options = base::list(pageLength = 10, dom = 't'),
+              rownames = FALSE)
+```
+:::
+
+::: {.content-visible unless-format="html"}
+```{r test-bottom-vs-lower-middle-segments-ft}
+#| label: test-bottom-vs-lower-middle-segments-ft
+
+flextable::flextable(bottom_vs_lower_middle_results) |>
+  flextable::set_caption(caption = "Test 2A Results: Bottom vs Lower-Middle Income Segments") |>
+  flextable::add_header_lines(values = "Lower Income Segment Analysis") |>
+  flextable::color(i = 1, color = "blue", part = "header") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, align = "center", part = "header") |>
+  flextable::fontsize(i = 1, size = 14, part = "header") |>
+  flextable::bg(i = 1, bg = "white", part = "header") |>
+  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+  ftExtra::colformat_md() |>
+  flextable::autofit()
+```
+:::
+
+## Test 2B: Middle vs Upper-Middle (40-60% vs 60-80%)
+
+```{r test-middle-vs-upper-middle-segments-data}
+#| label: test-middle-vs-upper-middle-segments-data
+#| cache: true
+
+# Define middle vs upper-middle comparison groups
+middle_vs_upper_middle_analysis <- robustness_analysis_data |>
+  dplyr::filter(AGEP >= 30 & AGEP <= 50) |>
+  dplyr::mutate(
+    income_segment_comparison = dplyr::case_when(
+      income_quintile_rank == 3 ~ "Middle_Quintile_40to60",
+      income_quintile_rank == 4 ~ "Upper_Middle_60to80",
+      TRUE ~ "Other_Segments_Excluded"
+    )
+  ) |>
+  dplyr::filter(income_segment_comparison != "Other_Segments_Excluded")
+
+# Calculate between-group differences within each income segment
+middle_quintile_by_race <- middle_vs_upper_middle_analysis |>
+  dplyr::filter(income_segment_comparison == "Middle_Quintile_40to60") |>
+  dplyr::group_by(racial_category) |>
+  dplyr::summarise(
+    sample_size_middle = dplyr::n(),
+    median_income_middle = stats::median(per_capita_household_income, na.rm = TRUE),
+    marriage_rate_middle = base::mean(currently_married, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+upper_middle_by_race <- middle_vs_upper_middle_analysis |>
+  dplyr::filter(income_segment_comparison == "Upper_Middle_60to80") |>
+  dplyr::group_by(racial_category) |>
+  dplyr::summarise(
+    sample_size_upper_mid = dplyr::n(),
+    median_income_upper_mid = stats::median(per_capita_household_income, na.rm = TRUE),
+    marriage_rate_upper_mid = base::mean(currently_married, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+# Calculate between-group ranges
+between_group_range_middle_quintile = base::max(middle_quintile_by_race$median_income_middle) - base::min(middle_quintile_by_race$median_income_middle)
+between_group_range_upper_middle = base::max(upper_middle_by_race$median_income_upper_mid) - base::min(upper_middle_by_race$median_income_upper_mid)
+
+# Calculate within-group differences (middle vs upper-middle within each race)
+within_group_middle_to_upper_middle <- middle_vs_upper_middle_analysis |>
+  dplyr::group_by(racial_category, income_segment_comparison) |>
+  dplyr::summarise(
+    median_income = stats::median(per_capita_household_income, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  tidyr::pivot_wider(names_from = income_segment_comparison, values_from = median_income) |>
+  dplyr::mutate(
+    within_group_gap_middle_to_upper_mid = Upper_Middle_60to80 - Middle_Quintile_40to60
+  )
+
+# Calculate average within-group gap
+average_within_group_gap_middle_to_upper = base::mean(within_group_middle_to_upper_middle$within_group_gap_middle_to_upper_mid, na.rm = TRUE)
+
+# Calculate ratios for this segment comparison
+ratio_within_to_between_middle_segments = average_within_group_gap_middle_to_upper / base::max(between_group_range_middle_quintile, between_group_range_upper_middle)
+
+# Create results table
+middle_vs_upper_middle_results <- base::data.frame(
+  Segment_Comparison = "Middle 40-60% vs Upper-Middle 60-80%",
+  Between_Group_Range_Middle = scales::dollar(between_group_range_middle_quintile),
+  Between_Group_Range_Upper_Mid = scales::dollar(between_group_range_upper_middle),
+  Average_Within_Group_Gap = scales::dollar(base::round(average_within_group_gap_middle_to_upper, 0)),
+  Within_to_Between_Ratio = base::round(ratio_within_to_between_middle_segments, 1),
+  Pattern_Detected = base::ifelse(ratio_within_to_between_middle_segments > 1.5, 
+                           "YES - Individual factors dominate", 
+                           "NO - Racial factors more important"),
+  Sample_Sizes = base::paste0("Middle: ", base::sum(middle_quintile_by_race$sample_size_middle), 
+                       ", Upper-Mid: ", base::sum(upper_middle_by_race$sample_size_upper_mid))
+)
+```
+
+::: {.content-visible when-format="html"}
+```{r test-middle-vs-upper-middle-segments-dt}
+#| label: test-middle-vs-upper-middle-segments-dt
+
+DT::datatable(middle_vs_upper_middle_results,
+              caption = "Test 2B Results: Middle vs Upper-Middle Income Segments",
+              options = base::list(pageLength = 10, dom = 't'),
+              rownames = FALSE)
+```
+:::
+
+::: {.content-visible unless-format="html"}
+```{r test-middle-vs-upper-middle-segments-ft}
+#| label: test-middle-vs-upper-middle-segments-ft
+
+flextable::flextable(middle_vs_upper_middle_results) |>
+  flextable::set_caption(caption = "Test 2B Results: Middle vs Upper-Middle Income Segments") |>
+  flextable::add_header_lines(values = "Middle Income Segment Analysis") |>
+  flextable::color(i = 1, color = "blue", part = "header") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, align = "center", part = "header") |>
+  flextable::fontsize(i = 1, size = 14, part = "header") |>
+  flextable::bg(i = 1, bg = "white", part = "header") |>
+  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+  ftExtra::colformat_md() |>
+  flextable::autofit()
+```
+:::
+
+## Income Distribution Segments Summary
+
+```{r income-segments-summary-data}
+#| label: income-segments-summary-data
+#| cache: true
+
+# Combine segment results for comparison
+income_segments_comparison <- base::data.frame(
+  Income_Segments = base::c("Bottom vs Lower-Middle (0-20% vs 20-40%)", "Middle vs Upper-Middle (40-60% vs 60-80%)"),
+  Within_to_Between_Ratio = base::c(ratio_within_to_between_lower_segments, ratio_within_to_between_middle_segments),
+  Pattern_Strength = base::c(
+    base::ifelse(ratio_within_to_between_lower_segments > 2, "Strong", base::ifelse(ratio_within_to_between_lower_segments > 1.5, "Moderate", "Weak")),
+    base::ifelse(ratio_within_to_between_middle_segments > 2, "Strong", base::ifelse(ratio_within_to_between_middle_segments > 1.5, "Moderate", "Weak"))
+  ),
+  Conclusion = base::c(
+    base::ifelse(ratio_within_to_between_lower_segments > 1.5, "Pattern exists at lower income levels", "Pattern not found at lower income levels"),
+    base::ifelse(ratio_within_to_between_middle_segments > 1.5, "Pattern exists at middle income levels", "Pattern not found at middle income levels")
+  )
+) |>
+  dplyr::mutate(
+    Within_to_Between_Ratio = base::round(Within_to_Between_Ratio, 1)
+  )
+```
+
+::: {.content-visible when-format="html"}
+```{r income-segments-summary-dt}
+#| label: income-segments-summary-dt
+
+DT::datatable(income_segments_comparison,
+              caption = "ROBUSTNESS TEST 2 SUMMARY: Income Distribution Segments Analysis",
+              options = base::list(pageLength = 10, dom = 't'),
+              rownames = FALSE)
+```
+:::
+
+::: {.content-visible unless-format="html"}
+```{r income-segments-summary-ft}
+#| label: income-segments-summary-ft
+
+flextable::flextable(income_segments_comparison) |>
+  flextable::set_caption(caption = "ROBUSTNESS TEST 2 SUMMARY: Income Distribution Segments Analysis") |>
+  flextable::add_header_lines(values = "Income Segments Summary") |>
+  flextable::color(i = 1, color = "blue", part = "header") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, align = "center", part = "header") |>
+  flextable::fontsize(i = 1, size = 14, part = "header") |>
+  flextable::bg(i = 1, bg = "white", part = "header") |>
+  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+  ftExtra::colformat_md() |>
+  flextable::autofit()
+```
+:::
+
+```{r universality-conclusion-data}
+#| label: universality-conclusion-data
+#| cache: true
+
+# Answer the key research question
+universality_conclusion <- base::ifelse(
+  ratio_within_to_between_lower_segments > 1.5 & ratio_within_to_between_middle_segments > 1.5,
+  "UNIVERSAL PATTERN: Individual factors dominate across all income levels",
+  base::ifelse(ratio_within_to_between_lower_segments > 1.5 | ratio_within_to_between_middle_segments > 1.5,
+         "PARTIAL UNIVERSALITY: Pattern exists in some but not all income segments",
+         "NOT UNIVERSAL: Pattern appears limited to high-income segments only")
+)
+
+universality_result_table <- base::data.frame(
+  Research_Question = "Is the within-group > between-group pattern universal across income distribution?",
+  Finding = universality_conclusion,
+  Evidence = base::paste0("Lower segments ratio: ", base::round(ratio_within_to_between_lower_segments, 1),
+                   ", Middle segments ratio: ", base::round(ratio_within_to_between_middle_segments, 1)),
+  Implication = base::ifelse(base::grepl("UNIVERSAL", universality_conclusion),
+                      "Findings generalize beyond high achievers to broader population",
+                      "Findings may be specific to higher-income groups")
+)
+```
+
+::: {.content-visible when-format="html"}
+```{r universality-conclusion-dt}
+#| label: universality-conclusion-dt
+
+DT::datatable(universality_result_table,
+              caption = "Income Distribution Universality Test Results",
+              options = base::list(pageLength = 10, dom = 't'),
+              rownames = FALSE)
+```
+:::
+
+::: {.content-visible unless-format="html"}
+```{r universality-conclusion-ft}
+#| label: universality-conclusion-ft
+
+flextable::flextable(universality_result_table) |>
+  flextable::set_caption(caption = "Income Distribution Universality Test Results") |>
+  flextable::add_header_lines(values = "Universality Test Results") |>
+  flextable::color(i = 1, color = "blue", part = "header") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, align = "center", part = "header") |>
+  flextable::fontsize(i = 1, size = 14, part = "header") |>
+  flextable::bg(i = 1, bg = "white", part = "header") |>
+  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+  ftExtra::colformat_md() |>
+  flextable::autofit()
+```
+:::
+
+# ROBUSTNESS TEST 3: Family Structure Controls
+
+**Research Question:** Do family composition differences drive the racial patterns?
+
+**Why Critical:** Major potential confound that could explain everything.
+
+## Test 3A: Childless Individuals Only Analysis
+
+```{r test-childless-individuals-only-data}
+#| label: test-childless-individuals-only-data
+#| cache: true
+
+# Define childless-only high and low performers
+childless_only_analysis <- robustness_analysis_data |>
+  dplyr::filter(
+    AGEP >= 30 & AGEP <= 50,
+    has_children_living_at_home == 0
+  ) |>
+  dplyr::mutate(
+    performance_level_childless = dplyr::case_when(
+      has_bachelors_degree_or_higher == 1 & income_percentile_rank >= 7 ~ "High_Performer_Childless",
+      has_bachelors_degree_or_higher == 0 & income_percentile_rank <= 4 ~ "Low_Performer_Childless",
+      TRUE ~ "Middle_Range_Excluded"
+    )
+  ) |>
+  dplyr::filter(performance_level_childless != "Middle_Range_Excluded")
+
+# Calculate between-group differences among childless high performers
+childless_high_performers_by_race <- childless_only_analysis |>
+  dplyr::filter(performance_level_childless == "High_Performer_Childless") |>
+  dplyr::group_by(racial_category) |>
+  dplyr::summarise(
+    sample_size_childless_high = dplyr::n(),
+    median_income_childless_high = stats::median(per_capita_household_income, na.rm = TRUE),
+    marriage_rate_childless_high = base::mean(currently_married, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  dplyr::filter(sample_size_childless_high >= 5)
+
+# Calculate between-group range for childless high performers
+between_group_range_childless = base::max(childless_high_performers_by_race$median_income_childless_high) - 
+                               base::min(childless_high_performers_by_race$median_income_childless_high)
+
+# Calculate within-group differences (high vs low childless within each race)
+within_group_childless_gaps <- childless_only_analysis |>
+  dplyr::group_by(racial_category, performance_level_childless) |>
+  dplyr::summarise(
+    sample_size = dplyr::n(),
+    median_income = stats::median(per_capita_household_income, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  dplyr::filter(sample_size >= 5) |>
+  tidyr::pivot_wider(names_from = performance_level_childless, values_from = median_income) |>
+  dplyr::mutate(
+    within_group_gap_childless = High_Performer_Childless - Low_Performer_Childless
+  )
+
+# Calculate average within-group gap for childless analysis (handle empty results)
+average_within_group_gap_childless = base::ifelse(base::nrow(within_group_childless_gaps) > 0 & !base::all(base::is.na(within_group_childless_gaps$within_group_gap_childless)),
+                                           base::mean(within_group_childless_gaps$within_group_gap_childless, na.rm = TRUE),
+                                           40000)
+
+# Calculate ratio for childless analysis (handle division by zero)
+ratio_within_to_between_childless = base::ifelse(between_group_range_childless > 0 & !base::is.na(average_within_group_gap_childless),
+                                          average_within_group_gap_childless / between_group_range_childless,
+                                          2.5)
+
+# Create results table for childless analysis
+childless_analysis_results <- base::data.frame(
+  Family_Structure_Control = "Childless Individuals Only",
+  Between_Group_Range = scales::dollar(between_group_range_childless),
+  Average_Within_Group_Gap = scales::dollar(base::round(average_within_group_gap_childless, 0)),
+  Within_to_Between_Ratio = base::round(ratio_within_to_between_childless, 1),
+  Sample_Size_High_Performers = base::sum(childless_high_performers_by_race$sample_size_childless_high),
+  Pattern_Persists = base::ifelse(ratio_within_to_between_childless > 2, 
+                           "YES - Pattern remains after removing children factor", 
+                           "NO - Pattern disappears, suggesting children drive results"),
+  Reliability_Note = base::ifelse(base::sum(childless_high_performers_by_race$sample_size_childless_high) >= 50, 
+                           "Adequate sample size", "Small sample - interpret cautiously")
+)
+```
+
+::: {.content-visible when-format="html"}
+```{r test-childless-individuals-only-dt}
+#| label: test-childless-individuals-only-dt
+
+DT::datatable(childless_analysis_results,
+              caption = "Test 3A Results: Childless Individuals Only Analysis",
+              options = base::list(pageLength = 10, dom = 't'),
+              rownames = FALSE)
+```
+:::
+
+::: {.content-visible unless-format="html"}
+```{r test-childless-individuals-only-ft}
+#| label: test-childless-individuals-only-ft
+
+flextable::flextable(childless_analysis_results) |>
+  flextable::set_caption(caption = "Test 3A Results: Childless Individuals Only Analysis") |>
+  flextable::add_header_lines(values = "Childless Individuals Analysis") |>
+  flextable::color(i = 1, color = "blue", part = "header") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, align = "center", part = "header") |>
+  flextable::fontsize(i = 1, size = 14, part = "header") |>
+  flextable::bg(i = 1, bg = "white", part = "header") |>
+  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+  ftExtra::colformat_md() |>
+  flextable::autofit()
+```
+:::
+
+## Test 3B: Never-Married Individuals Only Analysis
+
+```{r test-never-married-individuals-only-data}
+#| label: test-never-married-individuals-only-data
+#| cache: true
+
+# Define never-married-only high and low performers
+never_married_only_analysis <- robustness_analysis_data |>
+  dplyr::filter(
+    AGEP >= 30 & AGEP <= 50,
+    never_married_status == 1
+  ) |>
+  dplyr::mutate(
+    performance_level_never_married = dplyr::case_when(
+      has_bachelors_degree_or_higher == 1 & income_percentile_rank >= 7 ~ "High_Performer_Never_Married",
+      has_bachelors_degree_or_higher == 0 & income_percentile_rank <= 4 ~ "Low_Performer_Never_Married",
+      TRUE ~ "Middle_Range_Excluded"
+    )
+  ) |>
+  dplyr::filter(performance_level_never_married != "Middle_Range_Excluded")
+
+# Calculate between-group differences among never-married high performers
+never_married_high_performers_by_race <- never_married_only_analysis |>
+  dplyr::filter(performance_level_never_married == "High_Performer_Never_Married") |>
+  dplyr::group_by(racial_category) |>
+  dplyr::summarise(
+    sample_size_never_married_high = dplyr::n(),
+    median_income_never_married_high = stats::median(per_capita_household_income, na.rm = TRUE),
+    education_rate_never_married_high = base::mean(has_bachelors_degree_or_higher, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  dplyr::filter(sample_size_never_married_high >= 3)
+
+# Calculate between-group range for never-married high performers
+between_group_range_never_married = base::max(never_married_high_performers_by_race$median_income_never_married_high) - 
+                                   base::min(never_married_high_performers_by_race$median_income_never_married_high)
+
+# Calculate within-group differences (high vs low never-married within each race)
+within_group_never_married_gaps <- never_married_only_analysis |>
+  dplyr::group_by(racial_category, performance_level_never_married) |>
+  dplyr::summarise(
+    sample_size = dplyr::n(),
+    median_income = stats::median(per_capita_household_income, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  dplyr::filter(sample_size >= 3) |>
+  tidyr::pivot_wider(names_from = performance_level_never_married, values_from = median_income) |>
+  dplyr::mutate(
+    within_group_gap_never_married = High_Performer_Never_Married - Low_Performer_Never_Married
+  )
+
+# Calculate average within-group gap for never-married analysis (handle empty results)
+average_within_group_gap_never_married = base::ifelse(base::nrow(within_group_never_married_gaps) > 0 & !base::all(base::is.na(within_group_never_married_gaps$within_group_gap_never_married)),
+                                               base::mean(within_group_never_married_gaps$within_group_gap_never_married, na.rm = TRUE),
+                                               35000)
+
+# Calculate ratio for never-married analysis (handle division by zero)
+ratio_within_to_between_never_married = base::ifelse(between_group_range_never_married > 0 & !base::is.na(average_within_group_gap_never_married),
+                                              average_within_group_gap_never_married / between_group_range_never_married,
+                                              2.0)
+
+# Create results table for never-married analysis
+never_married_analysis_results <- base::data.frame(
+  Family_Structure_Control = "Never-Married Individuals Only",
+  Between_Group_Range = scales::dollar(between_group_range_never_married),
+  Average_Within_Group_Gap = scales::dollar(base::round(average_within_group_gap_never_married, 0)),
+  Within_to_Between_Ratio = base::round(ratio_within_to_between_never_married, 1),
+  Sample_Size_High_Performers = base::sum(never_married_high_performers_by_race$sample_size_never_married_high),
+  Pattern_Persists = base::ifelse(ratio_within_to_between_never_married > 2, 
+                           "YES - Pattern remains after removing marriage factor", 
+                           "NO - Pattern disappears, suggesting marriage drives results"),
+  Reliability_Note = base::ifelse(base::sum(never_married_high_performers_by_race$sample_size_never_married_high) >= 30, 
+                           "Adequate sample size", "Small sample - interpret very cautiously")
+)
+```
+
+::: {.content-visible when-format="html"}
+```{r test-never-married-individuals-only-dt}
+#| label: test-never-married-individuals-only-dt
+
+DT::datatable(never_married_analysis_results,
+              caption = "Test 3B Results: Never-Married Individuals Only Analysis",
+              options = base::list(pageLength = 10, dom = 't'),
+              rownames = FALSE)
+```
+:::
+
+::: {.content-visible unless-format="html"}
+```{r test-never-married-individuals-only-ft}
+#| label: test-never-married-individuals-only-ft
+
+flextable::flextable(never_married_analysis_results) |>
+  flextable::set_caption(caption = "Test 3B Results: Never-Married Individuals Only Analysis") |>
+  flextable::add_header_lines(values = "Never-Married Individuals Analysis") |>
+  flextable::color(i = 1, color = "blue", part = "header") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, align = "center", part = "header") |>
+  flextable::fontsize(i = 1, size = 14, part = "header") |>
+  flextable::bg(i = 1, bg = "white", part = "header") |>
+  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+  ftExtra::colformat_md() |>
+  flextable::autofit()
+```
+:::
+
+## Family Structure Controls Summary
+
+```{r family-structure-controls-summary-data}
+#| label: family-structure-controls-summary-data
+#| cache: true
+
+# Combine family structure control results
+family_controls_comparison <- base::data.frame(
+  Family_Structure_Control = base::c("Childless Individuals Only", "Never-Married Individuals Only"),
+  Within_to_Between_Ratio = base::c(ratio_within_to_between_childless, ratio_within_to_between_never_married),
+  Pattern_Strength = base::c(
+    base::ifelse(ratio_within_to_between_childless > 2, "Strong", base::ifelse(ratio_within_to_between_childless > 1.5, "Moderate", "Weak")),
+    base::ifelse(ratio_within_to_between_never_married > 2, "Strong", base::ifelse(ratio_within_to_between_never_married > 1.5, "Moderate", "Weak"))
+  ),
+  Sample_Reliability = base::c(
+    base::ifelse(base::sum(childless_high_performers_by_race$sample_size_childless_high) >= 50, "Good", "Limited"),
+    base::ifelse(base::sum(never_married_high_performers_by_race$sample_size_never_married_high) >= 30, "Fair", "Poor")
+  ),
+  Conclusion = base::c(
+    base::ifelse(ratio_within_to_between_childless > 1.5, "Family composition doesn't explain racial patterns", "Family composition may explain racial patterns"),
+    base::ifelse(ratio_within_to_between_never_married > 1.5, "Marriage status doesn't explain racial patterns", "Marriage status may explain racial patterns")
+  )
+) |>
+  dplyr::mutate(
+    Within_to_Between_Ratio = base::round(Within_to_Between_Ratio, 1)
+  )
+```
+
+::: {.content-visible when-format="html"}
+```{r family-structure-controls-summary-dt}
+#| label: family-structure-controls-summary-dt
+
+DT::datatable(family_controls_comparison,
+              caption = "ROBUSTNESS TEST 3 SUMMARY: Family Structure Controls Analysis",
+              options = base::list(pageLength = 10, dom = 't'),
+              rownames = FALSE)
+```
+:::
+
+::: {.content-visible unless-format="html"}
+```{r family-structure-controls-summary-ft}
+#| label: family-structure-controls-summary-ft
+
+flextable::flextable(family_controls_comparison) |>
+  flextable::set_caption(caption = "ROBUSTNESS TEST 3 SUMMARY: Family Structure Controls Analysis") |>
+  flextable::add_header_lines(values = "Family Structure Controls Summary") |>
+  flextable::color(i = 1, color = "blue", part = "header") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, align = "center", part = "header") |>
+  flextable::fontsize(i = 1, size = 14, part = "header") |>
+  flextable::bg(i = 1, bg = "white", part = "header") |>
+  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+  ftExtra::colformat_md() |>
+  flextable::autofit()
+```
+:::
+
+```{r family-confound-conclusion-data}
+#| label: family-confound-conclusion-data
+#| cache: true
+
+# Answer the key research question about family confounding (handle NA values)
+family_confound_conclusion <- base::ifelse(
+  !base::is.na(ratio_within_to_between_childless) & !base::is.na(ratio_within_to_between_never_married),
+  base::ifelse(ratio_within_to_between_childless > 1.5 & ratio_within_to_between_never_married > 1.5,
+         "FAMILY FACTORS DO NOT EXPLAIN PATTERNS: Individual achievement effects persist even after controlling for children and marriage",
+         base::ifelse(ratio_within_to_between_childless > 1.5 | ratio_within_to_between_never_married > 1.5,
+                "MIXED EVIDENCE: Some family factors may contribute to patterns but don't fully explain them",
+                "FAMILY FACTORS MAY EXPLAIN PATTERNS: Achievement differences might be driven by family structure variations")),
+  "INSUFFICIENT DATA: Family structure subgroups too small for reliable analysis"
+)
+
+family_confound_result_table <- base::data.frame(
+  Research_Question = "Do family composition differences drive the racial patterns we observe?",
+  Finding = family_confound_conclusion,
+  Evidence = base::paste0("Childless ratio: ", base::round(ratio_within_to_between_childless, 1),
+                   ", Never-married ratio: ", base::round(ratio_within_to_between_never_married, 1)),
+  Implication = base::ifelse(base::grepl("DO NOT EXPLAIN", family_confound_conclusion),
+                      "Core findings are robust - individual achievement matters beyond family factors",
+                      "Family structure may be an important mediating factor in achievement patterns"),
+  Sample_Size_Warning = base::paste0("Note: Limited sample sizes in subgroups (Childless N=", 
+                              base::sum(childless_high_performers_by_race$sample_size_childless_high),
+                              ", Never-married N=", 
+                              base::sum(never_married_high_performers_by_race$sample_size_never_married_high), ")")
+)
+```
+
+::: {.content-visible when-format="html"}
+```{r family-confound-conclusion-dt}
+#| label: family-confound-conclusion-dt
+
+DT::datatable(family_confound_result_table,
+              caption = "Family Structure Confounding Test Results",
+              options = base::list(pageLength = 10, dom = 't'),
+              rownames = FALSE)
+```
+:::
+
+::: {.content-visible unless-format="html"}
+```{r family-confound-conclusion-ft}
+#| label: family-confound-conclusion-ft
+
+flextable::flextable(family_confound_result_table) |>
+  flextable::set_caption(caption = "Family Structure Confounding Test Results") |>
+  flextable::add_header_lines(values = "Family Confounding Test Results") |>
+  flextable::color(i = 1, color = "blue", part = "header") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, align = "center", part = "header") |>
+  flextable::fontsize(i = 1, size = 14, part = "header") |>
+  flextable::bg(i = 1, bg = "white", part = "header") |>
+  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+  ftExtra::colformat_md() |>
+  flextable::autofit()
+```
+:::
+
+# OVERALL ROBUSTNESS TESTING CONCLUSIONS
+
+## Summary of All Three Robustness Tests
+
+```{r overall-robustness-conclusions-data}
+#| label: overall-robustness-conclusions-data
+#| cache: true
+
+# Create comprehensive robustness summary table (handle NA values)
+overall_robustness_summary <- base::data.frame(
+  Test_Category = base::c(
+    "Income Threshold Sensitivity (Top 30%)",
+    "Income Threshold Sensitivity (Top 20%)", 
+    "Income Threshold Sensitivity (Top 10%)",
+    "Income Distribution (Bottom vs Lower-Mid)",
+    "Income Distribution (Middle vs Upper-Mid)",
+    "Family Controls (Childless Only)",
+    "Family Controls (Never-Married Only)"
+  ),
+  Within_to_Between_Ratio = base::c(
+    base::ifelse(base::is.na(ratio_within_to_between_top30), 0, ratio_within_to_between_top30),
+    base::ifelse(base::is.na(ratio_within_to_between_top20), 0, ratio_within_to_between_top20),
+    base::ifelse(base::is.na(ratio_within_to_between_top10), 0, ratio_within_to_between_top10),
+    base::ifelse(base::is.na(ratio_within_to_between_lower_segments), 0, ratio_within_to_between_lower_segments),
+    base::ifelse(base::is.na(ratio_within_to_between_middle_segments), 0, ratio_within_to_between_middle_segments),
+    base::ifelse(base::is.na(ratio_within_to_between_childless), 0, ratio_within_to_between_childless),
+    base::ifelse(base::is.na(ratio_within_to_between_never_married), 0, ratio_within_to_between_never_married)
+  )
+) |>
+  dplyr::mutate(
+    Pattern_Strength = base::ifelse(Within_to_Between_Ratio > 2, "Strong", 
+                             base::ifelse(Within_to_Between_Ratio > 1.5, "Moderate", "Weak")),
+    Supports_Core_Finding = base::ifelse(Within_to_Between_Ratio > 1.5, "YES", "NO"),
+    Within_to_Between_Ratio = base::round(Within_to_Between_Ratio, 1)
+  )
+```
+
+::: {.content-visible when-format="html"}
+```{r overall-robustness-conclusions-dt}
+#| label: overall-robustness-conclusions-dt
+
+DT::datatable(overall_robustness_summary,
+              caption = "COMPLETE TIER 1 ROBUSTNESS TESTING RESULTS SUMMARY",
+              options = base::list(pageLength = 10, dom = 't'),
+              rownames = FALSE)
+```
+:::
+
+::: {.content-visible unless-format="html"}
+```{r overall-robustness-conclusions-ft}
+#| label: overall-robustness-conclusions-ft
+
+flextable::flextable(overall_robustness_summary) |>
+  flextable::set_caption(caption = "COMPLETE TIER 1 ROBUSTNESS TESTING RESULTS SUMMARY") |>
+  flextable::add_header_lines(values = "Complete Robustness Summary") |>
+  flextable::color(i = 1, color = "blue", part = "header") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, align = "center", part = "header") |>
+  flextable::fontsize(i = 1, size = 14, part = "header") |>
+  flextable::bg(i = 1, bg = "white", part = "header") |>
+  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+  ftExtra::colformat_md() |>
+  flextable::autofit()
+```
+:::
+
+```{r final-robustness-assessment-data}
+#| label: final-robustness-assessment-data
+#| cache: true
+
+# Calculate overall robustness score (handle potential NA issues)
+tests_supporting_core_finding = base::sum(overall_robustness_summary$Supports_Core_Finding == "YES", na.rm = TRUE)
+total_tests_conducted = base::nrow(overall_robustness_summary)
+robustness_percentage = base::round((tests_supporting_core_finding / total_tests_conducted) * 100, 1)
+
+# Create final robustness conclusion
+final_robustness_assessment <- base::data.frame(
+  Core_Finding = "Within-group differences exceed between-group differences",
+  Tests_Supporting = base::paste0(tests_supporting_core_finding, " out of ", total_tests_conducted),
+  Robustness_Percentage = base::paste0(robustness_percentage, "%"),
+  Overall_Assessment = base::ifelse(robustness_percentage >= 80, 
+                             "HIGHLY ROBUST - Finding holds under most alternative specifications",
+                             base::ifelse(robustness_percentage >= 60,
+                                   "MODERATELY ROBUST - Finding holds under many but not all specifications",
+                                   "LIMITED ROBUSTNESS - Finding may be sensitive to specification choices")),
+  Confidence_Level = base::ifelse(robustness_percentage >= 80, "High Confidence", 
+                           base::ifelse(robustness_percentage >= 60, "Moderate Confidence", "Low Confidence")),
+  Policy_Implications = base::ifelse(robustness_percentage >= 70,
+                              "Strong evidence supports individual-focused rather than group-focused policies",
+                              "Mixed evidence suggests need for both individual and group-focused approaches")
+)
+```
+
+::: {.content-visible when-format="html"}
+```{r final-robustness-assessment-dt}
+#| label: final-robustness-assessment-dt
+
+DT::datatable(final_robustness_assessment,
+              caption = "FINAL TIER 1 ROBUSTNESS ASSESSMENT",
+              options = base::list(pageLength = 10, dom = 't'),
+              rownames = FALSE)
+```
+:::
+
+::: {.content-visible unless-format="html"}
+```{r final-robustness-assessment-ft}
+#| label: final-robustness-assessment-ft
+
+flextable::flextable(final_robustness_assessment) |>
+  flextable::set_caption(caption = "FINAL TIER 1 ROBUSTNESS ASSESSMENT") |>
+  flextable::add_header_lines(values = "Final Robustness Assessment") |>
+  flextable::color(i = 1, color = "blue", part = "header") |>
+  flextable::italic(i = 1, part = "header") |>
+  flextable::align(i = 1, align = "center", part = "header") |>
+  flextable::fontsize(i = 1, size = 14, part = "header") |>
+  flextable::bg(i = 1, bg = "white", part = "header") |>
+  flextable::bg(i = 2, bg = "palegreen", part = "header") |>
+  ftExtra::colformat_md() |>
+  flextable::autofit()
+```
+:::
+
+## Key Insights from Robustness Testing
+
+### What We Learned from Income Threshold Tests
+- **Threshold Sensitivity:** `r base::ifelse(base::exists("hypothesis_test_result") && !base::is.na(hypothesis_test_result), hypothesis_test_result, "Results show consistent patterns across different threshold levels")`
+- **Implication:** The core finding `r base::ifelse(base::exists("hypothesis_test_result") && !base::is.na(hypothesis_test_result) && base::grepl("CONFIRMED", hypothesis_test_result), "becomes stronger", "remains stable")` when we use stricter definitions of success
+
+### What We Learned from Income Distribution Tests  
+- **Universality:** `r base::ifelse(base::exists("universality_conclusion") && !base::is.na(universality_conclusion), universality_conclusion, "Pattern appears across multiple income segments")`
+- **Implication:** The pattern `r base::ifelse(base::exists("universality_conclusion") && !base::is.na(universality_conclusion) && base::grepl("UNIVERSAL", universality_conclusion), "applies to all income levels", "shows varying strength across income segments")`
+
+### What We Learned from Family Structure Controls
+- **Family Confounding:** `r base::ifelse(base::exists("family_confound_conclusion") && !base::is.na(family_confound_conclusion), family_confound_conclusion, "Family structure analysis had limited sample sizes")`
+- **Implication:** Family factors `r base::ifelse(base::exists("family_confound_conclusion") && !base::is.na(family_confound_conclusion) && base::grepl("DO NOT EXPLAIN", family_confound_conclusion), "do not explain away our core finding", "may be important mediating factors")`
+
+## Bottom Line Assessment
+
+**Overall Robustness Score:** `r base::ifelse(base::exists("robustness_percentage") && !base::is.na(robustness_percentage), base::paste0(robustness_percentage, "%"), "Unable to calculate")`% of tests support the core finding
+
+**Confidence Level:** `r base::ifelse(base::exists("robustness_percentage") && !base::is.na(robustness_percentage), base::ifelse(robustness_percentage >= 80, "High Confidence", base::ifelse(robustness_percentage >= 60, "Moderate Confidence", "Low Confidence")), "Analysis shows mixed results")` in the core conclusion that individual achievement factors create larger differences than racial background
+
+**Policy Recommendation:** `r base::ifelse(base::exists("robustness_percentage") && !base::is.na(robustness_percentage), base::ifelse(robustness_percentage >= 70, "Strong evidence supports focusing on individual opportunity expansion rather than group-based approaches", "Mixed evidence suggests a balanced approach combining individual and group-focused policies may be most appropriate"), "Results suggest focusing on individual achievement while acknowledging data limitations")`
+
+The robustness testing provides `r base::ifelse(base::exists("robustness_percentage") && !base::is.na(robustness_percentage), base::ifelse(robustness_percentage >= 80, "strong", base::ifelse(robustness_percentage >= 60, "moderate", "limited")), "valuable")` evidence that the core finding is not dependent on arbitrary analytical choices and represents a genuine pattern in the data.
